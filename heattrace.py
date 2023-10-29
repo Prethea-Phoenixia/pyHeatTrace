@@ -2,7 +2,8 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.filedialog as tkfiledialog
 import tkinter.messagebox as tkmessagebox
-import subprocess
+from ttkthemes import ThemedTk
+import subprocess as sp
 
 """
 Jinpeng Zhai
@@ -12,49 +13,119 @@ Main script to analyze a Python file, using a tk-GUI for interactivity.
 
 import os
 import queue
-from threading import Thread
+from threading import Thread, Event
 
 
 class heatTrace(tk.Frame):
-    def __init__(self, parent, menubar):
+    def __init__(self, parent):
         # use this instead of super() due to multiple inheritance
         ttk.Frame.__init__(self, parent)
         # initially, let the fileVar be pointed at this file itself.
-        self.fileVar = tk.StringVar(value=os.path.normpath(__file__))
+        self.pathVar = tk.StringVar(value=os.path.normpath(__file__))
         self.pack(expand=1, fill="both")  # pack the heatTrace frame in root.
 
-        fileMenu = tk.Menu(menubar)
-        menubar.add_cascade(
-            label="File", underline=0, menu=fileMenu
-        )  # cascading file menu
-        fileMenu.add_command(
-            label="Load Programme", underline=0, command=self.load
-        )  # command button to load programmes
-
+        # allow 3,1 to unconditionally take up more space as the window is resized
         self.columnconfigure(1, weight=1)
-        self.rowconfigure(1, weight=1)
+        self.rowconfigure(3, weight=1)
 
         # group of widgets responsible for selecting the target file.
-        ttk.Label(self, text="File Selected", underline=0, anchor="e").grid(
-            row=0, column=0, sticky="nsew"
+        ttk.Button(
+            self, text="Select File", underline=0, command=self.load
+        ).grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+        ttk.Entry(self, textvariable=self.pathVar, state="disabled").grid(
+            row=0, column=1, sticky="nsew", padx=2, pady=2
         )
-        ttk.Entry(self, textvariable=self.fileVar, state="disabled").grid(
-            row=0, column=1, sticky="nsew"
+        ttk.Button(self, text="Run Trace", command=self.trace).grid(
+            row=0, column=2, sticky="nsew", padx=2, pady=2
         )
-        ttk.Button(self, text="Run", command=self.trace).grid(
-            row=0, column=2, sticky="nsew"
+
+        mainOptionFrame = ttk.LabelFrame(self, text="Options")
+        mainOptionFrame.grid(
+            row=1, column=0, columnspan=3, sticky="nsew", padx=10, pady=10
+        )
+
+        for i in range(5):
+            mainOptionFrame.columnconfigure(i, weight=1)
+
+        self.arg_c = tk.IntVar()
+        ttk.Checkbutton(
+            mainOptionFrame, text="--count", variable=self.arg_c
+        ).grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+
+        self.arg_t = tk.IntVar()
+        ttk.Checkbutton(
+            mainOptionFrame, text="--trace", variable=self.arg_t
+        ).grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
+
+        self.arg_l = tk.IntVar()
+        ttk.Checkbutton(
+            mainOptionFrame, text="--listfuncs", variable=self.arg_l
+        ).grid(row=0, column=2, sticky="nsew", padx=2, pady=2)
+
+        self.arg_r = tk.IntVar()
+        ttk.Checkbutton(
+            mainOptionFrame, text="--report", variable=self.arg_r
+        ).grid(row=0, column=3, sticky="nsew", padx=2, pady=2)
+
+        self.arg_T = tk.IntVar()
+        ttk.Checkbutton(
+            mainOptionFrame, text="--trackcalls", variable=self.arg_T
+        ).grid(row=0, column=4, sticky="nsew", padx=2, pady=2)
+
+        modifierFrame = ttk.LabelFrame(self, text="Modifiers")
+        modifierFrame.grid(
+            row=2, column=0, columnspan=3, sticky="nsew", padx=10, pady=10
+        )
+
+        for i in range(4):
+            modifierFrame.columnconfigure(i, weight=1)
+
+        self.arg_m = tk.IntVar()
+        ttk.Checkbutton(
+            modifierFrame, text="--missing", variable=self.arg_m
+        ).grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+
+        self.arg_s = tk.IntVar()
+        ttk.Checkbutton(
+            modifierFrame, text="--summary", variable=self.arg_s
+        ).grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
+
+        self.arg_R = tk.IntVar()
+        ttk.Checkbutton(
+            modifierFrame, text="--no-report", variable=self.arg_R
+        ).grid(row=0, column=2, sticky="nsew", padx=2, pady=2)
+
+        self.arg_g = tk.IntVar()
+        ttk.Checkbutton(
+            modifierFrame, text="--timing", variable=self.arg_g
+        ).grid(row=0, column=3, sticky="nsew", padx=2, pady=2)
+
+        self.fargs = tk.StringVar()
+        ttk.Label(modifierFrame, text="--file").grid(
+            row=1, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(modifierFrame, textvariable=self.fargs).grid(
+            row=1, column=1, columnspan=3, sticky="nsew", padx=2, pady=2
+        )
+
+        self.Cargs = tk.StringVar()
+        ttk.Label(modifierFrame, text="--coverdir").grid(
+            row=2, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(modifierFrame, textvariable=self.Cargs).grid(
+            row=2, column=1, columnspan=3, sticky="nsew", padx=2, pady=2
         )
 
         self.ttyText = tk.Text(self, wrap=tk.CHAR)
-        self.ttyText.grid(row=1, column=0, columnspan=3, sticky="nsew")
+        self.ttyText.grid(row=3, column=0, columnspan=3, sticky="nsew")
         self.ttyText.config(background="black", foreground="white")
 
-        # open a subprocess to this script.
-        self.p = subprocess.Popen(
+        # open a sp to this script.
+        self.p = sp.Popen(
             ["cmd"],  # ISSUE: Platform dependency
-            stdout=subprocess.PIPE,
-            stdin=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stdout=sp.PIPE,
+            stdin=sp.PIPE,
+            stderr=sp.PIPE,
         )
 
         # make queues for keeping stdout and stderr whilst it is transferred between threads
@@ -74,7 +145,6 @@ class heatTrace(tk.Frame):
         Thread(target=self.readFromProccessErr).start()
 
         # start the write loop in the main thread
-        self.clear()
         self.writeLoop()
 
     def load(self):
@@ -90,21 +160,53 @@ class heatTrace(tk.Frame):
         if filePath == "":
             tkmessagebox.showinfo(exceptionMsg, "No File Selected")
         else:
-            self.fileVar.set(os.path.normpath(filePath))
-
-        self.navigateToFolder()
+            self.pathVar.set(os.path.normpath(filePath))
+            self.navigateToFolder()
 
     def trace(self):
-        pass
+        fileName = os.path.basename(self.pathVar.get())
+
+        options = " ".join(
+            (
+                v
+                for v in (
+                    ("-c" if self.arg_c.get() else None),
+                    ("-t" if self.arg_t.get() else None),
+                    ("-l" if self.arg_l.get() else None),
+                    ("-r" if self.arg_r.get() else None),
+                    ("-T" if self.arg_T.get() else None),
+                    (
+                        "-f " + self.fargs.get()
+                        if self.fargs.get() != ""
+                        else None
+                    ),
+                    (
+                        "-C " + self.Cargs.get()
+                        if self.Cargs.get() != ""
+                        else None
+                    ),
+                    ("-m" if self.arg_m.get() else None),
+                    ("-s" if self.arg_s.get() else None),
+                    ("-R" if self.arg_R.get() else None),
+                    ("-g" if self.arg_g.get() else None),
+                )
+                if v is not None
+            )
+        )
+        traceCommand = " ".join(["python -m trace", options, fileName, "\n"])
+        self.p.stdin.write(traceCommand.encode())
+        self.p.stdin.flush()
 
     def destroy(self):  #
         """This is the function that is automatically called when the widget is
         destroyed, and overrides the widget's default destroy()"""
         self.alive = False
         # write exit() to the console in order to stop it running
-        self.p.stdin.write("exit\n".encode())
-        # TODO: make this platform independent
-        self.p.stdin.flush()
+
+        self.p.terminate()  # this, if the above didn't work, sends a Termination signal
+        self.p.kill()  # and a kill signal. On windows this is the same.
+        # these methods are a lot more effective than sending "exit" and flushing
+
         # call the destroy methods to properly destroy widgets
         self.ttyText.destroy()
         tk.Frame.destroy(self)
@@ -146,11 +248,11 @@ class heatTrace(tk.Frame):
         self.ttyText.delete(1.0, tk.END)
 
     def navigateToFolder(self):
-        folderPath = os.path.dirname(self.fileVar.get())
+        folderPath = os.path.dirname(self.pathVar.get())
 
         self.p.stdin.write(
             "cd {:}\n".format(folderPath).encode()
-        )  # AT LEAST this is platform independent thank god.
+        )  # This is also platform independent.
 
         self.p.stdin.flush()
 
@@ -161,16 +263,18 @@ class heatTrace(tk.Frame):
 
 
 def main():
-    root = tk.Tk()
-    # style = ttk.Style(root)
-    # style.theme_use("")
+    root = ThemedTk(theme="equilux")
+    """
+    style = ttk.Style(root)
+    style.theme_use("alt")
+    """
 
-    root.option_add("*tearOff", False)
-    root.title("pyHeatTrace")
+    # root.option_add("*tearOff", False)
+    # root.title("pyHeatTrace")
 
-    menubar = tk.Menu(root)
-    root.config(menu=menubar)
-    heatTrace(root, menubar)
+    # menubar = tk.Menu(root)
+    # root.config(menu=menubar)
+    heatTrace(root)
     root.mainloop()
 
 
