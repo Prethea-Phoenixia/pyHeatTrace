@@ -1,144 +1,102 @@
+# main.py
 import tkinter as tk
-import tkinter.ttk as ttk
-import tkinter.filedialog as tkfiledialog
-import tkinter.messagebox as tkmessagebox
+import subprocess
+import queue
+import os
+from threading import Thread
 
 
-"""
-Jinpeng Zhai
-Main script to analyze a Python file, using a tk-GUI for interactivity
-"""
+class Console(tk.Frame):
+    def __init__(self, parent=None):
+        tk.Frame.__init__(self, parent)
+        self.parent = parent
+        self.createWidgets()
 
-import sys
-import trace
-
-import traceback
-
-# use this instead of bare import since we want to parse code,
-# not import (and risk running the code being imported)
-import ast
-
-
-class heatTrace(tk.Frame):
-    def __init__(self, parent, menubar):
-        # use this instead of super() due to multiple inheritance
-        ttk.Frame.__init__(self, parent)
-        self.pack(expand=1, fill="both")  # pack the heatTrace frame in root.
-
-        fileMenu = tk.Menu(menubar)
-        menubar.add_cascade(
-            label="File", underline=0, menu=fileMenu
-        )  # cascading file menu
-        fileMenu.add_command(
-            label="Load Programme", underline=0, command=self.load
-        )  # command button to load programmes
-
-        self.columnconfigure(1, weight=1)
-
-        ttk.Label(self, text="Entry Point", underline=0, anchor="e").grid(
-            row=0, column=0, sticky="nsew"
+        # get the path to the console.py file assuming it is in the same folder
+        consolePath = os.path.join(os.path.dirname(__file__), "console.py")
+        # open the console.py file (replace the path to python with the correct one for your system)
+        # e.g. it might be "C:\\Python35\\python"
+        self.p = subprocess.Popen(
+            ["python", consolePath],
+            # ["cmd", consolePath],
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
 
-        # entryPointStr = tk.StringVar()
-        self.entryPointDropdown = ttk.Combobox(
-            self,
-            # textvariable=entryPointStr,
-            # values=self.getTopLevel(),
-            values=[],  # initialize it empty
-            justify="center",
-            state="readonly",
-        )
-        self.entryPointDropdown.grid(row=0, column=1, sticky="nsew")
-        self.entryPointDropdown.option_add(
-            "*TCombobox*Listbox.Justify", "center"
-        )
-        ttk.Button(self, text="Run", command=self.trace).grid(
-            row=0, column=2, sticky="nsew"
-        )
+        # make queues for keeping stdout and stderr whilst it is transferred between threads
+        self.outQueue = queue.Queue()
+        self.errQueue = queue.Queue()
 
-        self.parse("main.py")
+        # keep track of where any line that is submitted starts
+        self.line_start = 0
 
-    def load(self):
-        fileName = tkfiledialog.askopenfilename(
-            title="Load Programme to be Analyzed",
-            filetypes=(("Python Programme", "*.py"),),
-            defaultextension=".py",
-            initialfile="main.py",
-            initialdir="./",  # set to local dir relative to where this script is stored
-        )
+        # make the enter key call the self.enter function
+        self.ttyText.bind("<Return>", self.enter)
 
-        exceptionMsg = "Exception Occured during Load"
-        if fileName == "":
-            tkmessagebox.showinfo(exceptionMsg, "No File Selected")
-            return
+        # a daemon to keep track of the threads so they can stop running
+        self.alive = True
+        # start the functions that get stdout and stderr in separate threads
+        Thread(target=self.readFromProccessOut).start()
+        Thread(target=self.readFromProccessErr).start()
 
-        try:
-            self.parse(fileName)
-        except (
-            Exception
-        ):  # normally catching a bare exception is not recommended
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            exceptionDesc = "".join(
-                traceback.format_exception(exc_type, exc_value, exc_traceback)
-            )
-            tkmessagebox.showinfo(exceptionMsg, exceptionDesc)
+        # start the write loop in the main thread
+        self.writeLoop()
 
-    def parse(self, fileName):
-        """
-        Parse a given filename. Works entirely via side-effects:
-        Side effects:
-            self.tree:
-                is set
-            self.entryPointDropdown:
-                is set to the list of global function definitions, the
-                current selection is set to the last.
+    def destroy(self):
+        "This is the function that is automatically called when the widget is destroyed."
+        self.alive = False
+        # write exit() to the console in order to stop it running
+        self.p.stdin.write("exit()\n".encode())
+        self.p.stdin.flush()
+        # call the destroy methods to properly destroy widgets
+        self.ttyText.destroy()
+        tk.Frame.destroy(self)
 
-        Is called on every load (to target file) and during initialization
-        (to this script itself.)
-        """
-        with open(fileName, "rt", encoding="utf-8") as file:  # rt: read as text
-            tree = ast.parse(
-                file.read(), filename=fileName
-            )  # read the file into ast nodes
+    def enter(self, e):
+        "The <Return> key press handler"
+        string = self.ttyText.get(1.0, tk.END)[self.line_start :]
+        self.line_start += len(string)
+        self.p.stdin.write(string.encode())
+        self.p.stdin.flush()
 
-        topLevels = tuple(
-            f.name for f in tree.body if isinstance(f, ast.FunctionDef)
-        )
+    def readFromProccessOut(self):
+        "To be executed in a separate thread to make read non-blocking"
+        while self.alive:
+            data = self.p.stdout.raw.read(1024).decode()
+            self.outQueue.put(data)
 
-        if len(topLevels) == 0:
-            raise ValueError(
-                "The file being loaded does not contain any valid global function definition!"
-            )
+    def readFromProccessErr(self):
+        "To be executed in a separate thread to make read non-blocking"
+        while self.alive:
+            data = self.p.stderr.raw.read(1024).decode()
+            self.errQueue.put(data)
 
-        self.entryPointDropdown["values"] = topLevels
-        self.entryPointDropdown.current(
-            len(topLevels) - 1
-        )  # set the default entry point to the last one
+    def writeLoop(self):
+        "Used to write data from stdout and stderr to the Text widget"
+        # if there is anything to write from stdout or stderr, then write it
+        if not self.errQueue.empty():
+            self.write(self.errQueue.get())
+        if not self.outQueue.empty():
+            self.write(self.outQueue.get())
 
-        self.tree = tree
+        # run this method again after 10ms
+        if self.alive:
+            self.after(10, self.writeLoop)
 
-    def trace(self):
-        pass
+    def write(self, string):
+        self.ttyText.insert(tk.END, string)
+        self.ttyText.see(tk.END)
+        self.line_start += len(string)
 
-
-def main():
-    root = tk.Tk()
-    # style = ttk.Style(root)
-    # style.theme_use("")
-
-    root.option_add("*tearOff", False)
-    root.title("pyHeatTrace")
-
-    menubar = tk.Menu(root)
-    root.config(menu=menubar)
-    heatTrace(root, menubar)
-    root.mainloop()
+    def createWidgets(self):
+        self.ttyText = tk.Text(self, wrap=tk.WORD)
+        self.ttyText.pack(fill=tk.BOTH, expand=True)
 
 
 if __name__ == "__main__":
-    main()
-
-"""
-def test():
-    pass
-"""
+    root = tk.Tk()
+    root.config(background="red")
+    main_window = Console(root)
+    main_window.pack(fill=tk.BOTH, expand=True)
+    root.mainloop()
