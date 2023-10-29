@@ -47,8 +47,10 @@ class Console(tk.Frame):
         "This is the function that is automatically called when the widget is destroyed."
         self.alive = False
         # write exit() to the console in order to stop it running
-        self.p.stdin.write("exit()\n".encode())
-        self.p.stdin.flush()
+        # self.p.stdin.write("exit()\n".encode())
+        # self.p.stdin.flush()
+        self.p.terminate()
+        self.p.kill()
         # call the destroy methods to properly destroy widgets
         self.ttyText.destroy()
         tk.Frame.destroy(self)

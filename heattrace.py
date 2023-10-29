@@ -13,7 +13,9 @@ Main script to analyze a Python file, using a tk-GUI for interactivity.
 
 import os
 import queue
-from threading import Thread, Event
+from threading import Thread
+
+import psutil
 
 
 class heatTrace(tk.Frame):
@@ -116,16 +118,33 @@ class heatTrace(tk.Frame):
             row=2, column=1, columnspan=3, sticky="nsew", padx=2, pady=2
         )
 
-        self.ttyText = tk.Text(self, wrap=tk.CHAR)
+        self.ttyText = tk.Text(self, wrap=tk.CHAR, undo=True)
         self.ttyText.grid(row=3, column=0, columnspan=3, sticky="nsew")
-        self.ttyText.config(background="black", foreground="white")
+        self.ttyText.config(
+            background="black",
+            foreground="green",
+            insertbackground="white",
+            selectbackground="grey",
+            selectforeground="green",
+        )
 
-        # open a sp to this script.
-        self.p = sp.Popen(
-            ["cmd"],  # ISSUE: Platform dependency
-            stdout=sp.PIPE,
-            stdin=sp.PIPE,
-            stderr=sp.PIPE,
+        self.ttyText.tag_config(
+            "stdout",
+            background="black",
+            foreground="white",
+            selectbackground="grey",
+            selectforeground="black",
+        )
+        self.ttyText.tag_config(
+            "stderr",
+            background="black",
+            foreground="red",
+            selectbackground="grey",
+            selectforeground="red",
+        )
+
+        ttk.Button(self, text="Reset", command=self.restart).grid(
+            row=4, column=0, sticky="nsew"
         )
 
         # make queues for keeping stdout and stderr whilst it is transferred between threads
@@ -137,15 +156,16 @@ class heatTrace(tk.Frame):
 
         # make the enter key call the self.enter function
         self.ttyText.bind("<Return>", self.enter)
+        # and make sure the user does not delete past the starting point.
+        """
+        self.ttyText.bind("<BackSpace>", self.delete)
+        self.ttyText.bind("<Delete>", self.delete)
+        """
+        # self.ttyText.bind("<Key>", self.preKey)
+        self.ttyText.bind("<KeyRelease>", self.postKey)
 
-        # a daemon to keep track of the threads so they can stop running
-        self.alive = True
-        # start the functions that get stdout and stderr in separate threads
-        Thread(target=self.readFromProccessOut).start()
-        Thread(target=self.readFromProccessErr).start()
-
-        # start the write loop in the main thread
-        self.writeLoop()
+        self.startSubprocess()
+        self.writeLoop()  # start the write loop in the main thread
 
     def load(self):
         filePath = tkfiledialog.askopenfilename(
@@ -213,10 +233,24 @@ class heatTrace(tk.Frame):
 
     def enter(self, e):
         """The <Return> key press handler"""
+        self.postKey(None)
+        # ensure the Enter key, if pressed simultaneousely, effectively
+        # "interrupts" other entries by forcing the postKey to be called.
         string = self.ttyText.get(1.0, tk.END)[self.line_start :]
         self.line_start += len(string)
         self.p.stdin.write(string.encode())
         self.p.stdin.flush()
+
+    def postKey(self, e):
+        ttyNow, ttyNowTagDict = self.ttyNow
+        ttyNew = self.ttyText.get(1.0, tk.END)[: len(ttyNow)]
+        if ttyNew != ttyNow:
+            self.ttyText.edit_undo()
+            self.ttyText.edit_reset()
+
+            for tag, ranges in ttyNowTagDict.items():
+                for startIndex, endIndex in zip(ranges[::2], ranges[1::2]):
+                    self.ttyText.tag_add(tag, startIndex, endIndex)
 
     def readFromProccessOut(self):
         """To be executed in a separate thread to make read non-blocking"""
@@ -233,11 +267,12 @@ class heatTrace(tk.Frame):
     def writeLoop(self):
         """Used to write data from stdout and stderr to the Text widget"""
         # if there is anything to write from stdout or stderr, then write it
+
         if not self.errQueue.empty():
-            self.write(self.errQueue.get())
+            self.write(self.errQueue.get(), tag="stderr")
         if not self.outQueue.empty():
             out = self.outQueue.get()
-            self.write(out)
+            self.write(out, tag="stdout")
 
         # run this method again after 10ms
         if self.alive:
@@ -256,19 +291,54 @@ class heatTrace(tk.Frame):
 
         self.p.stdin.flush()
 
-    def write(self, string):
-        self.ttyText.insert(tk.END, string)
+    def write(self, string, tag=None):
+        self.ttyText.insert(tk.END, string, tag)
         self.ttyText.see(tk.END)
+        self.ttyText.mark_set(tk.INSERT, tk.END)
+
         self.line_start += len(string)
+
+        self.ttyText.edit_reset()
+
+        self.ttyNow = (
+            self.ttyText.get(1.0, tk.END)[: self.line_start],
+            {tag: self.ttyText.tag_ranges(tag) for tag in ("stdout", "stderr")},
+        )
+
+    def startSubprocess(self):
+        # open a subprocess to this script.
+        self.p = sp.Popen(
+            ["cmd"], stdout=sp.PIPE, stdin=sp.PIPE, stderr=sp.PIPE
+        )
+
+        # a daemon to keep track of the threads so they can stop running
+        self.alive = True
+        # start the functions that get stdout and stderr in separate threads
+        Thread(target=self.readFromProccessOut).start()
+        Thread(target=self.readFromProccessErr).start()
+
+    def endSubprocess(self):
+        self.alive = False
+
+        # use psutil (a cross platform tool) to recursively kill the children
+        # to ensure a clean exit.
+        process = psutil.Process(self.p.pid)
+        for childProcess in process.children(recursive=True):
+            childProcess.kill()
+        process.kill()
+
+        # the original way of ending subprocesses.
+        self.p.terminate()
+        self.p.kill()
+
+    def restart(self):
+        self.endSubprocess()
+        self.clear()
+        self.startSubprocess()
 
 
 def main():
     root = ThemedTk(theme="equilux")
-    """
-    style = ttk.Style(root)
-    style.theme_use("alt")
-    """
-
     # root.option_add("*tearOff", False)
     # root.title("pyHeatTrace")
 
