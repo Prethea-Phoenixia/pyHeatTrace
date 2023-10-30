@@ -39,7 +39,10 @@ class heatTrace(tk.Frame):
             row=0, column=1, sticky="nsew", padx=2, pady=2
         )
         ttk.Button(
-            self, text="Select Programme", underline=0, command=self.load
+            self,
+            text="Select Programme",
+            underline=7,
+            command=self.loadProgramme,
         ).grid(row=0, column=2, sticky="nsew", padx=2, pady=2)
 
         mainOptionFrame = ttk.LabelFrame(self, text="Options")
@@ -122,8 +125,11 @@ class heatTrace(tk.Frame):
         ).grid(row=0, column=2, sticky="nsew", padx=2, pady=2)
 
         self.Cargs = tk.StringVar(
-            value=os.path.normpath(os.path.dirname(__file__))
+            value=os.path.normpath(
+                os.path.splitext(self.pathVar.get())[0] + "_coverage"
+            )
         )
+
         ttk.Label(strargsFrm, text="--coverdir").grid(
             row=1, column=0, sticky="nsew", padx=2, pady=2
         )
@@ -159,7 +165,9 @@ class heatTrace(tk.Frame):
         )
 
         self.ttyText = tk.Text(self, wrap=tk.CHAR, undo=True)
-        self.ttyText.grid(row=3, column=0, columnspan=3, sticky="nsew")
+        self.ttyText.grid(
+            row=3, column=0, columnspan=3, sticky="nsew", padx=10, pady=10
+        )
         self.ttyText.config(
             background="black",
             foreground="green",
@@ -189,12 +197,15 @@ class heatTrace(tk.Frame):
         for i in range(3):
             operationFrame.columnconfigure(index=i, weight=1)
 
-        ttk.Button(operationFrame, text="Reset", command=self.restart).grid(
-            row=0, column=0, sticky="nsew", padx=2, pady=2
-        )
+        ttk.Button(
+            operationFrame, text="Reset Console", command=self.restart
+        ).grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+        ttk.Button(
+            operationFrame, text="Reset File", command=self.resetFile
+        ).grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
 
         ttk.Button(operationFrame, text="Run Trace", command=self.trace).grid(
-            row=0, column=2, sticky="nsew", padx=2, pady=2
+            row=1, column=0, columnspan=3, sticky="nsew", padx=2, pady=2
         )
 
         for var in (
@@ -227,7 +238,7 @@ class heatTrace(tk.Frame):
         self.startSubprocess()
         self.writeLoop()  # start the write loop in the main thread
 
-    def load(self):
+    def loadProgramme(self):
         filePath = tkfiledialog.askopenfilename(
             title="Load Programme to be Analyzed",
             filetypes=(("Python Programme", "*.py"),),
@@ -241,6 +252,19 @@ class heatTrace(tk.Frame):
             tkmessagebox.showinfo(exceptionMsg, "No File Selected")
         else:
             self.pathVar.set(os.path.normpath(filePath))
+
+            name = os.path.splitext(os.path.basename(self.pathVar.get()))[0]
+            self.Cargs.set(
+                os.path.normpath(
+                    os.path.join(
+                        os.path.dirname(self.pathVar.get()), name + "_coverage"
+                    )
+                )
+            )
+
+            self.fargs.set(
+                os.path.normpath(os.path.join(self.Cargs.get(), name + ".file"))
+            )
             self.navigateToFolder()
 
     def loadIgnore(self):
@@ -275,7 +299,7 @@ class heatTrace(tk.Frame):
     def selectDirectory(self):
         dirPath = tkfiledialog.askdirectory(
             title="Select Directory for Cover File",
-            mustexist=True,
+            mustexist=False,
             initialdir=".",  # set to local dir relative to where this script is stored
         )
 
@@ -289,61 +313,9 @@ class heatTrace(tk.Frame):
             initialfile="",
             initialdir=".",  # set to local dir relative to where this script is stored
         )
-
-        self.fargs.set(os.path.normpath(filePath))  # allow bare
-
-    def trace(self):
-        fileName = os.path.basename(self.pathVar.get())
-
-        if (self.arg_c.get() or self.arg_r.get()) and self.fargs.get() == "":
-            root, ext = os.path.splitext(self.pathVar.get())
-            filePath = root + ".file"
-            if not os.path.exists(filePath):
-                with open(filePath, "w"):
-                    pass  # create the file
-
-            self.fargs.set(filePath)
-
-        options = " ".join(
-            (
-                v
-                for v in (
-                    ("-c" if self.arg_c.get() else None),
-                    ("-t" if self.arg_t.get() else None),
-                    ("-l" if self.arg_l.get() else None),
-                    ("-r" if self.arg_r.get() else None),
-                    ("-T" if self.arg_T.get() else None),
-                    (
-                        "-f " + self.fargs.get()
-                        if self.fargs.get() != ""
-                        else None
-                    ),
-                    (
-                        "-C " + self.Cargs.get()
-                        if self.Cargs.get() != ""
-                        else None
-                    ),
-                    ("-m" if self.arg_m.get() else None),
-                    ("-s" if self.arg_s.get() else None),
-                    ("-R" if self.arg_R.get() else None),
-                    ("-g" if self.arg_g.get() else None),
-                    (
-                        "--ignore-module=" + self.ignored_module.get()
-                        if self.ignored_module.get()
-                        else None
-                    ),
-                    (
-                        "--ignore-dir=" + self.ignored_module.get()
-                        if self.ignored_dir.get()
-                        else None
-                    ),
-                )
-                if v is not None
-            )
-        )
-        traceCommand = " ".join(["python -m trace", options, fileName, "\n"])
-        self.p.stdin.write(traceCommand.encode())
-        self.p.stdin.flush()
+        self.fargs.set(
+            os.path.normpath(filePath)
+        )  # note! this will change "" to "."
 
     def consistency(self, *args):
         # -l (listfuncs) is mutually exclusive with -c (--count) or -t (--trace)
@@ -353,6 +325,9 @@ class heatTrace(tk.Frame):
             self.arg_c.set(0)
             self.arg_t.set(0)
             self.arg_l.set(0)
+
+        if not self.arg_t.get():
+            self.arg_g.set(0)
 
         # if self.arg_c.get(): # count and file are used at the same time
 
@@ -483,14 +458,67 @@ class heatTrace(tk.Frame):
         self.clear()
         self.startSubprocess()
 
+    def trace(self):
+        fileName = os.path.basename(self.pathVar.get())
+
+        needFilearg = (
+            self.arg_c.get() or self.arg_r.get()
+        )  # file arg is supplied whenever either a --report or a --count is specified.
+
+        if needFilearg and self.fargs.get() == ".":
+            name = os.path.splitext(os.path.basename(self.pathVar.get()))[0]
+            filePath = os.path.normpath(
+                os.path.join(self.Cargs.get(), name + ".file")
+            )
+            # this creates the file that trace writes to, in order to persist
+            # tracing counts between runs.
+
+            self.fargs.set(filePath)
+
+        options = " ".join(
+            (
+                arg
+                for arg in (
+                    ("-c" if self.arg_c.get() else None),
+                    ("-t" if self.arg_t.get() else None),
+                    ("-l" if self.arg_l.get() else None),
+                    ("-r" if self.arg_r.get() else None),
+                    ("-T" if self.arg_T.get() else None),
+                    ("-f " + self.fargs.get() if needFilearg else None),
+                    (
+                        "-C " + self.Cargs.get()
+                    ),  # coverage report dir is always supplied
+                    ("-m" if self.arg_m.get() else None),
+                    ("-s" if self.arg_s.get() else None),
+                    ("-R" if self.arg_R.get() else None),
+                    ("-g" if self.arg_g.get() else None),
+                    (
+                        "--ignore-module=" + self.ignored_module.get()
+                        if self.ignored_module.get()
+                        else None
+                    ),
+                    (
+                        "--ignore-dir=" + self.ignored_dir.get()
+                        if self.ignored_dir.get()
+                        else None
+                    ),
+                )
+                if arg is not None
+            )
+        )
+        traceCommand = " ".join(["python -m trace", options, fileName, "\n"])
+        self.p.stdin.write(traceCommand.encode())
+        self.p.stdin.flush()
+
+    def resetFile(self):
+        if os.path.exists(self.fargs.get()):
+            os.remove(self.fargs.get())
+
 
 def main():
     root = ThemedTk(theme="equilux")
     root.option_add("*tearOff", False)
     root.title("pyHeatTrace")
-
-    # menubar = tk.Menu(root)
-    # root.config(menu=menubar)
     heatTrace(root)
     root.mainloop()
 
