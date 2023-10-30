@@ -14,6 +14,7 @@ import os
 import queue
 import traceback
 from threading import Thread
+from platform import system
 
 import psutil
 
@@ -432,7 +433,7 @@ class heatTrace(tk.Frame):
     def startSubprocess(self):
         # open a subprocess to this script.
         self.p = sp.Popen(
-            ["cmd"],
+            ["cmd" if system() == 'window' else 'bash'], # simple identification of the running system,
             stdout=sp.PIPE,
             stdin=sp.PIPE,
             stderr=sp.PIPE,
