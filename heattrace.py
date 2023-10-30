@@ -10,9 +10,10 @@ Jinpeng Zhai
 Main script to analyze a Python file, using a tk-GUI for interactivity.
 
 """
-
+import sys
 import os
 import queue
+import traceback
 from threading import Thread
 
 import psutil
@@ -31,15 +32,15 @@ class heatTrace(tk.Frame):
         self.rowconfigure(3, weight=1)
 
         # group of widgets responsible for selecting the target file.
-        ttk.Button(
-            self, text="Select File", underline=0, command=self.load
-        ).grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+        ttk.Label(self, text="Traced Programme").grid(
+            row=0, column=0, sticky="nsew", padx=2, pady=2
+        )
         ttk.Entry(self, textvariable=self.pathVar, state="disabled").grid(
             row=0, column=1, sticky="nsew", padx=2, pady=2
         )
-        ttk.Button(self, text="Run Trace", command=self.trace).grid(
-            row=0, column=2, sticky="nsew", padx=2, pady=2
-        )
+        ttk.Button(
+            self, text="Select Programme", underline=0, command=self.load
+        ).grid(row=0, column=2, sticky="nsew", padx=2, pady=2)
 
         mainOptionFrame = ttk.LabelFrame(self, text="Options")
         mainOptionFrame.grid(
@@ -120,7 +121,9 @@ class heatTrace(tk.Frame):
             strargsFrm, text="Select File", underline=7, command=self.selectFile
         ).grid(row=0, column=2, sticky="nsew", padx=2, pady=2)
 
-        self.Cargs = tk.StringVar()
+        self.Cargs = tk.StringVar(
+            value=os.path.normpath(os.path.dirname(__file__))
+        )
         ttk.Label(strargsFrm, text="--coverdir").grid(
             row=1, column=0, sticky="nsew", padx=2, pady=2
         )
@@ -135,16 +138,19 @@ class heatTrace(tk.Frame):
         ).grid(row=1, column=2, sticky="nsew", padx=2, pady=2)
 
         self.ignored_module = tk.StringVar(
-            value="sys.prefix" + os.pathsep + "sys.exec_prefix"
+            value=",".join((["os", "sys", "__init__"]))
         )
         ttk.Label(strargsFrm, text="--ignored_module").grid(
             row=2, column=0, sticky="nsew", padx=2, pady=2
         )
         ttk.Entry(strargsFrm, textvariable=self.ignored_module).grid(
-            row=2, column=1, columnspan=2, stick="nsew", padx=2, pady=2
+            row=2, column=1, sticky="nsew", padx=2, pady=2
         )
+        ttk.Button(
+            strargsFrm, text="Load Ignore", underline=5, command=self.loadIgnore
+        ).grid(row=2, column=2, sticky="nsew", padx=2, pady=2)
 
-        self.ignored_dir = tk.StringVar()
+        self.ignored_dir = tk.StringVar(value=os.pathsep.join(sys.path[1:]))
         ttk.Label(strargsFrm, text="--ignored_dir").grid(
             row=3, column=0, sticky="nsew", padx=2, pady=2
         )
@@ -184,8 +190,27 @@ class heatTrace(tk.Frame):
             operationFrame.columnconfigure(index=i, weight=1)
 
         ttk.Button(operationFrame, text="Reset", command=self.restart).grid(
-            row=0, column=0, sticky="nsew"
+            row=0, column=0, sticky="nsew", padx=2, pady=2
         )
+
+        ttk.Button(operationFrame, text="Run Trace", command=self.trace).grid(
+            row=0, column=2, sticky="nsew", padx=2, pady=2
+        )
+
+        for var in (
+            self.arg_c,
+            self.arg_t,
+            self.arg_l,
+            self.arg_r,
+            self.arg_T,
+            self.fargs,
+            self.Cargs,
+            self.arg_m,
+            self.arg_s,
+            self.arg_R,
+            self.arg_g,
+        ):
+            var.trace_add("write", self.consistency)
 
         # make queues for keeping stdout and stderr whilst it is transferred between threads
         self.outQueue = queue.Queue()
@@ -218,6 +243,35 @@ class heatTrace(tk.Frame):
             self.pathVar.set(os.path.normpath(filePath))
             self.navigateToFolder()
 
+    def loadIgnore(self):
+        filePath = tkfiledialog.askopenfilename(
+            title="Ignored Modules",
+            filetypes=(("Text File", "*.txt"),),
+            defaultextension=".txt",
+            initialfile="ignore.txt",
+            initialdir=".",  # set to local dir relative to where this script is stored
+        )
+
+        if filePath == "":
+            tkmessagebox.showinfo("Exception:", "No File Selected")
+        else:
+            try:
+                with open(os.path.normpath(filePath), "rt") as file:
+                    ignores = file.read()
+
+                self.ignored_module.set(ignores.replace("\n", ""))
+
+            except (
+                Exception
+            ):  # normally catching a bare exception is not recommended
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                exceptionDesc = "".join(
+                    traceback.format_exception(
+                        exc_type, exc_value, exc_traceback
+                    )
+                )
+                tkmessagebox.showinfo("Exception", exceptionDesc)
+
     def selectDirectory(self):
         dirPath = tkfiledialog.askdirectory(
             title="Select Directory for Cover File",
@@ -225,11 +279,7 @@ class heatTrace(tk.Frame):
             initialdir=".",  # set to local dir relative to where this script is stored
         )
 
-        exceptionMsg = "Exception:"
-        if dirPath == "":
-            tkmessagebox.showinfo(exceptionMsg, "No File Selected")
-        else:
-            self.Cargs.set(os.path.normpath(dirPath))
+        self.Cargs.set(os.path.normpath(dirPath))  # allow bare
 
     def selectFile(self):
         filePath = tkfiledialog.askopenfilename(
@@ -240,14 +290,19 @@ class heatTrace(tk.Frame):
             initialdir=".",  # set to local dir relative to where this script is stored
         )
 
-        exceptionMsg = "Exception:"
-        if filePath == "":
-            tkmessagebox.showinfo(exceptionMsg, "No File Selected")
-        else:
-            self.fargs.set(os.path.normpath(filePath))
+        self.fargs.set(os.path.normpath(filePath))  # allow bare
 
     def trace(self):
         fileName = os.path.basename(self.pathVar.get())
+
+        if (self.arg_c.get() or self.arg_r.get()) and self.fargs.get() == "":
+            root, ext = os.path.splitext(self.pathVar.get())
+            filePath = root + ".file"
+            if not os.path.exists(filePath):
+                with open(filePath, "w"):
+                    pass  # create the file
+
+            self.fargs.set(filePath)
 
         options = " ".join(
             (
@@ -289,6 +344,17 @@ class heatTrace(tk.Frame):
         traceCommand = " ".join(["python -m trace", options, fileName, "\n"])
         self.p.stdin.write(traceCommand.encode())
         self.p.stdin.flush()
+
+    def consistency(self, *args):
+        # -l (listfuncs) is mutually exclusive with -c (--count) or -t (--trace)
+        if self.arg_l.get() and any(
+            v == 1 for v in (self.arg_c.get(), self.arg_t.get())
+        ):
+            self.arg_c.set(0)
+            self.arg_t.set(0)
+            self.arg_l.set(0)
+
+        # if self.arg_c.get(): # count and file are used at the same time
 
     def destroy(self):  #
         """This is the function that is automatically called when the widget is
@@ -420,8 +486,8 @@ class heatTrace(tk.Frame):
 
 def main():
     root = ThemedTk(theme="equilux")
-    # root.option_add("*tearOff", False)
-    # root.title("pyHeatTrace")
+    root.option_add("*tearOff", False)
+    root.title("pyHeatTrace")
 
     # menubar = tk.Menu(root)
     # root.config(menu=menubar)
