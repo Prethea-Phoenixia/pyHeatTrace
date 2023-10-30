@@ -4,6 +4,7 @@ import tkinter.filedialog as tkfiledialog
 import tkinter.messagebox as tkmessagebox
 from ttkthemes import ThemedTk
 import subprocess as sp
+from platform import system
 
 """
 Jinpeng Zhai
@@ -422,7 +423,7 @@ class heatTrace(tk.Frame):
     def startSubprocess(self):
         # open a subprocess to this script.
         self.p = sp.Popen(
-            ["cmd"],
+            ["cmd" if system() == 'window' else 'bash'], # simple identification of the running system
             stdout=sp.PIPE,
             stdin=sp.PIPE,
             stderr=sp.PIPE,
