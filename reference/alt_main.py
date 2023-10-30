@@ -97,9 +97,7 @@ class Console(tk.Frame):
         cur_ind = str(self.ttytext.index(tk.INSERT))
         try:
             if int(cur_ind.split(".")[0]) < int(
-                self.ttytext.search(r"In [0-9]?", tk.END, backwards=True).split(
-                    "."
-                )[0]
+                self.ttytext.search(r"In [0-9]?", tk.END, backwards=True).split(".")[0]
             ):
                 return "break"
         except:

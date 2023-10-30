@@ -2,9 +2,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.filedialog as tkfiledialog
 import tkinter.messagebox as tkmessagebox
-from ttkthemes import ThemedTk
 import subprocess as sp
-from platform import system
 
 """
 Jinpeng Zhai
@@ -165,9 +163,18 @@ class heatTrace(tk.Frame):
             row=3, column=1, columnspan=2, stick="nsew", padx=2, pady=2
         )
 
-        self.ttyText = tk.Text(self, wrap=tk.CHAR, undo=True)
+        consoleFrame = ttk.LabelFrame(self,text="Console")
+        consoleFrame.grid(row = 3, column = 0, columnspan=3, sticky="nsew", padx=10, pady=10)
+
+        consoleFrame.columnconfigure(0, weight = 1)
+        consoleFrame.rowconfigure(0, weight = 1)
+
+        scroll = ttk.Scrollbar(consoleFrame, orient="vertical")
+        scroll.grid(row = 0, column = 1, sticky="nsew", padx=0, pady=0)
+
+        self.ttyText = tk.Text(consoleFrame, wrap=tk.CHAR, undo=True, yscrollcommand = scroll.set)
         self.ttyText.grid(
-            row=3, column=0, columnspan=3, sticky="nsew", padx=10, pady=10
+            row=0, column=0, sticky="nsew"
         )
         self.ttyText.config(
             background="black",
@@ -191,6 +198,8 @@ class heatTrace(tk.Frame):
             selectbackground="grey",
             selectforeground="red",
         )
+
+
 
         operationFrame = ttk.LabelFrame(self, text="Operations")
         operationFrame.grid(row=4, column=0, columnspan=3, stick="nsew")
@@ -423,7 +432,7 @@ class heatTrace(tk.Frame):
     def startSubprocess(self):
         # open a subprocess to this script.
         self.p = sp.Popen(
-            ["cmd" if system() == 'window' else 'bash'], # simple identification of the running system
+            ["cmd"],
             stdout=sp.PIPE,
             stdin=sp.PIPE,
             stderr=sp.PIPE,
@@ -517,7 +526,7 @@ class heatTrace(tk.Frame):
 
 
 def main():
-    root = ThemedTk(theme="equilux")
+    root = tk.Tk()
     root.option_add("*tearOff", False)
     root.title("pyHeatTrace")
     heatTrace(root)
