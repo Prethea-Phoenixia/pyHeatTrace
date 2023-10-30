@@ -102,20 +102,54 @@ class heatTrace(tk.Frame):
             modifierFrame, text="--timing", variable=self.arg_g
         ).grid(row=0, column=3, sticky="nsew", padx=2, pady=2)
 
-        self.fargs = tk.StringVar()
-        ttk.Label(modifierFrame, text="--file").grid(
-            row=1, column=0, sticky="nsew", padx=2, pady=2
-        )
-        ttk.Entry(modifierFrame, textvariable=self.fargs).grid(
-            row=1, column=1, columnspan=3, sticky="nsew", padx=2, pady=2
+        strargsFrm = ttk.Frame(modifierFrame)
+        strargsFrm.grid(
+            row=1, column=0, columnspan=4, sticky="nsew", padx=2, pady=2
         )
 
+        strargsFrm.columnconfigure(1, weight=1)
+
+        self.fargs = tk.StringVar()
+        ttk.Label(strargsFrm, text="--file").grid(
+            row=0, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(strargsFrm, textvariable=self.fargs).grid(
+            row=0, column=1, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Button(
+            strargsFrm, text="Select File", underline=7, command=self.selectFile
+        ).grid(row=0, column=2, sticky="nsew", padx=2, pady=2)
+
         self.Cargs = tk.StringVar()
-        ttk.Label(modifierFrame, text="--coverdir").grid(
+        ttk.Label(strargsFrm, text="--coverdir").grid(
+            row=1, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(strargsFrm, textvariable=self.Cargs).grid(
+            row=1, column=1, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Button(
+            strargsFrm,
+            text="Select Directory",
+            underline=7,
+            command=self.selectDirectory,
+        ).grid(row=1, column=2, sticky="nsew", padx=2, pady=2)
+
+        self.ignored_module = tk.StringVar(
+            value="sys.prefix" + os.pathsep + "sys.exec_prefix"
+        )
+        ttk.Label(strargsFrm, text="--ignored_module").grid(
             row=2, column=0, sticky="nsew", padx=2, pady=2
         )
-        ttk.Entry(modifierFrame, textvariable=self.Cargs).grid(
-            row=2, column=1, columnspan=3, sticky="nsew", padx=2, pady=2
+        ttk.Entry(strargsFrm, textvariable=self.ignored_module).grid(
+            row=2, column=1, columnspan=2, stick="nsew", padx=2, pady=2
+        )
+
+        self.ignored_dir = tk.StringVar()
+        ttk.Label(strargsFrm, text="--ignored_dir").grid(
+            row=3, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(strargsFrm, textvariable=self.ignored_dir).grid(
+            row=3, column=1, columnspan=2, stick="nsew", padx=2, pady=2
         )
 
         self.ttyText = tk.Text(self, wrap=tk.CHAR, undo=True)
@@ -143,8 +177,14 @@ class heatTrace(tk.Frame):
             selectforeground="red",
         )
 
-        ttk.Button(self, text="Reset", command=self.restart).grid(
-            row=4, column=0, sticky="nsew"
+        operationFrame = ttk.LabelFrame(self, text="Operations")
+        operationFrame.grid(row=4, column=0, columnspan=3, stick="nsew")
+
+        for i in range(3):
+            operationFrame.columnconfigure(index=i, weight=1)
+
+        ttk.Button(operationFrame, text="Reset", command=self.restart).grid(
+            row=0, column=0, sticky="nsew"
         )
 
         # make queues for keeping stdout and stderr whilst it is transferred between threads
@@ -157,11 +197,6 @@ class heatTrace(tk.Frame):
         # make the enter key call the self.enter function
         self.ttyText.bind("<Return>", self.enter)
         # and make sure the user does not delete past the starting point.
-        """
-        self.ttyText.bind("<BackSpace>", self.delete)
-        self.ttyText.bind("<Delete>", self.delete)
-        """
-        # self.ttyText.bind("<Key>", self.preKey)
         self.ttyText.bind("<KeyRelease>", self.postKey)
 
         self.startSubprocess()
@@ -182,6 +217,34 @@ class heatTrace(tk.Frame):
         else:
             self.pathVar.set(os.path.normpath(filePath))
             self.navigateToFolder()
+
+    def selectDirectory(self):
+        dirPath = tkfiledialog.askdirectory(
+            title="Select Directory for Cover File",
+            mustexist=True,
+            initialdir=".",  # set to local dir relative to where this script is stored
+        )
+
+        exceptionMsg = "Exception:"
+        if dirPath == "":
+            tkmessagebox.showinfo(exceptionMsg, "No File Selected")
+        else:
+            self.Cargs.set(os.path.normpath(dirPath))
+
+    def selectFile(self):
+        filePath = tkfiledialog.askopenfilename(
+            title="Select File to Accumulate",
+            filetypes=(("File", "*.*"),),
+            defaultextension=".*",
+            initialfile="",
+            initialdir=".",  # set to local dir relative to where this script is stored
+        )
+
+        exceptionMsg = "Exception:"
+        if filePath == "":
+            tkmessagebox.showinfo(exceptionMsg, "No File Selected")
+        else:
+            self.fargs.set(os.path.normpath(filePath))
 
     def trace(self):
         fileName = os.path.basename(self.pathVar.get())
@@ -209,6 +272,16 @@ class heatTrace(tk.Frame):
                     ("-s" if self.arg_s.get() else None),
                     ("-R" if self.arg_R.get() else None),
                     ("-g" if self.arg_g.get() else None),
+                    (
+                        "--ignore-module=" + self.ignored_module.get()
+                        if self.ignored_module.get()
+                        else None
+                    ),
+                    (
+                        "--ignore-dir=" + self.ignored_module.get()
+                        if self.ignored_dir.get()
+                        else None
+                    ),
                 )
                 if v is not None
             )
@@ -308,7 +381,10 @@ class heatTrace(tk.Frame):
     def startSubprocess(self):
         # open a subprocess to this script.
         self.p = sp.Popen(
-            ["cmd"], stdout=sp.PIPE, stdin=sp.PIPE, stderr=sp.PIPE
+            ["cmd"],
+            stdout=sp.PIPE,
+            stdin=sp.PIPE,
+            stderr=sp.PIPE,
         )
 
         # a daemon to keep track of the threads so they can stop running
@@ -326,6 +402,11 @@ class heatTrace(tk.Frame):
         for childProcess in process.children(recursive=True):
             childProcess.kill()
         process.kill()
+
+        while not self.errQueue.empty():
+            self.errQueue.get()
+        while not self.outQueue.empty():
+            self.outQueue.get()
 
         # the original way of ending subprocesses.
         self.p.terminate()
