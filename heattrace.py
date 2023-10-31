@@ -3,6 +3,7 @@ import tkinter.ttk as ttk
 import tkinter.filedialog as tkfiledialog
 import tkinter.messagebox as tkmessagebox
 import subprocess as sp
+from time import strftime, localtime
 
 """
 Jinpeng Zhai
@@ -19,12 +20,17 @@ from platform import system
 import psutil
 
 
+BUNDLED_TEE_DIR = "tee-win32/tee-x64.exe"
+
+
 class heatTrace(tk.Frame):
     def __init__(self, parent):
         # use this instead of super() due to multiple inheritance
         ttk.Frame.__init__(self, parent)
         # initially, let the fileVar be pointed at this file itself.
-        self.pathVar = tk.StringVar(value=os.path.normpath(__file__))
+        self.pathVar = tk.StringVar(
+            value=os.path.normpath(os.path.abspath(__file__))
+        )
         self.pack(expand=1, fill="both")  # pack the heatTrace frame in root.
 
         # allow 3,1 to unconditionally take up more space as the window is resized
@@ -209,7 +215,7 @@ class heatTrace(tk.Frame):
         operationFrame = ttk.LabelFrame(self, text="Operations")
         operationFrame.grid(row=4, column=0, columnspan=3, stick="nsew")
 
-        for i in range(3):
+        for i in range(2):
             operationFrame.columnconfigure(index=i, weight=1)
 
         ttk.Button(
@@ -222,8 +228,13 @@ class heatTrace(tk.Frame):
         ).grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
 
         ttk.Button(operationFrame, text="Run Trace", command=self.trace).grid(
-            row=1, column=0, columnspan=3, sticky="nsew", padx=2, pady=2
+            row=1, column=0, sticky="nsew", padx=2, pady=2
         )
+        ttk.Button(
+            operationFrame,
+            text="Run Trace and Save to File",
+            command=lambda: self.trace(tee=True),
+        ).grid(row=1, column=1, sticky="nsew", padx=2, pady=2)
 
         for var in (
             self.arg_c,
@@ -491,7 +502,7 @@ class heatTrace(tk.Frame):
         self.startSubprocess()
         self.navigateToFolder()
 
-    def trace(self):
+    def trace(self, tee=False):
         fileName = os.path.basename(self.pathVar.get())
 
         needFilearg = (
@@ -517,21 +528,21 @@ class heatTrace(tk.Frame):
                     ("-l" if self.arg_l.get() else None),
                     ("-r" if self.arg_r.get() else None),
                     ("-T" if self.arg_T.get() else None),
-                    ("-f " + self.fargs.get() if needFilearg else None),
+                    ('-f "' + self.fargs.get() + '"' if needFilearg else None),
                     (
-                        "-C " + self.Cargs.get()
+                        '-C "' + self.Cargs.get() + '"'
                     ),  # coverage report dir is always supplied
                     ("-m" if self.arg_m.get() else None),
                     ("-s" if self.arg_s.get() else None),
                     ("-R" if self.arg_R.get() else None),
                     ("-g" if self.arg_g.get() else None),
                     (
-                        "--ignore-module=" + self.ignored_module.get()
+                        '--ignore-module="' + self.ignored_module.get() + '"'
                         if self.ignored_module.get()
                         else None
                     ),
                     (
-                        "--ignore-dir=" + self.ignored_dir.get()
+                        '--ignore-dir="' + self.ignored_dir.get() + '"'
                         if self.ignored_dir.get()
                         else None
                     ),
@@ -539,7 +550,36 @@ class heatTrace(tk.Frame):
                 if arg is not None
             )
         )
-        traceCommand = " ".join(["python -m trace", options, fileName, "\n"])
+
+        if tee:
+            teePath = (
+                os.path.splitext(self.pathVar.get())[0]
+                + strftime("_%Y_%m_%d_%H_%M_%S", localtime())
+                + ".txt"
+            )
+            teeCommand = " ".join(
+                (
+                    "|",
+                    (
+                        os.path.normpath(
+                            os.path.join(
+                                os.path.dirname(os.path.abspath(__file__)),
+                                BUNDLED_TEE_DIR,
+                            )
+                        )
+                        if system() == "Windows"
+                        else "tee"
+                    ),  # on Linux tee is a built in utility
+                    '"' + teePath + '"',
+                )
+            )
+        else:
+            teeCommand = ""
+
+        traceCommand = " ".join(
+            ["python -m trace", options, fileName, teeCommand, "\n"]
+        )
+
         self.p.stdin.write(traceCommand.encode())
         self.p.stdin.flush()
 
