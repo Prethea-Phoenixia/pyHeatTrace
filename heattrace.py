@@ -144,7 +144,8 @@ class heatTrace(tk.Frame):
         ).grid(row=1, column=2, sticky="nsew", padx=2, pady=2)
 
         self.ignored_module = tk.StringVar(
-            value=",".join((["os", "sys", "__init__"]))
+            # value=",".join((["os", "sys", "__init__"]))
+            value=""
         )
         ttk.Label(strargsFrm, text="--ignored_module").grid(
             row=2, column=0, sticky="nsew", padx=2, pady=2
@@ -178,6 +179,9 @@ class heatTrace(tk.Frame):
         self.ttyText = tk.Text(
             consoleFrame, wrap=tk.CHAR, undo=True, yscrollcommand=scroll.set
         )
+
+        scroll.config(command=self.ttyText.yview)
+
         self.ttyText.grid(row=0, column=0, sticky="nsew")
         self.ttyText.config(
             background="black",
@@ -212,7 +216,9 @@ class heatTrace(tk.Frame):
             operationFrame, text="Reset Console", command=self.restart
         ).grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
         ttk.Button(
-            operationFrame, text="Reset File", command=self.resetFile
+            operationFrame,
+            text="Reset Count File",
+            command=lambda: self.resetFile(path=self.fargs.get()),
         ).grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
 
         ttk.Button(operationFrame, text="Run Trace", command=self.trace).grid(
@@ -337,8 +343,14 @@ class heatTrace(tk.Frame):
             self.arg_t.set(0)
             self.arg_l.set(0)
 
-        if not self.arg_t.get():
+        if not self.arg_t.get():  # --timing is only used for --trace
             self.arg_g.set(0)
+
+        if self.arg_r.get():  # --report displays result from previous runs
+            self.arg_c.set(0)
+            self.arg_t.set(0)
+            self.arg_l.set(0)
+            self.arg_T.set(0)
 
         # if self.arg_c.get(): # count and file are used at the same time
 
@@ -523,9 +535,21 @@ class heatTrace(tk.Frame):
         self.p.stdin.write(traceCommand.encode())
         self.p.stdin.flush()
 
-    def resetFile(self):
-        if os.path.exists(self.fargs.get()):
-            os.remove(self.fargs.get())
+    def resetFile(self, path):
+        if os.path.exists(path):
+            try:
+                os.remove(path)
+                tkmessagebox.showinfo(
+                    "Success", "Count file at {:} has been reset".format(path)
+                )
+            except Exception:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                exceptionDesc = "".join(
+                    traceback.format_exception(
+                        exc_type, exc_value, exc_traceback
+                    )
+                )
+                tkmessagebox.showinfo("Exception", exceptionDesc)
 
 
 def main():
