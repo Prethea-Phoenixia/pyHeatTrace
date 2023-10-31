@@ -113,7 +113,7 @@ class heatTrace(tk.Frame):
 
         strargsFrm.columnconfigure(1, weight=1)
 
-        self.fargs = tk.StringVar()
+        self.fargs = tk.StringVar(value=".")
         ttk.Label(strargsFrm, text="--file").grid(
             row=0, column=0, sticky="nsew", padx=2, pady=2
         )
@@ -352,6 +352,13 @@ class heatTrace(tk.Frame):
             self.arg_l.set(0)
             self.arg_T.set(0)
 
+        if (
+            self.arg_c.get() or self.arg_r.get()
+        ):  # -- summary can only be used with --count or --report
+            pass
+        else:
+            self.arg_s.set(0)
+
         # if self.arg_c.get(): # count and file are used at the same time
 
     def destroy(self):  #
@@ -482,6 +489,7 @@ class heatTrace(tk.Frame):
         self.endSubprocess()
         self.clear()
         self.startSubprocess()
+        self.navigateToFolder()
 
     def trace(self):
         fileName = os.path.basename(self.pathVar.get())
@@ -490,14 +498,14 @@ class heatTrace(tk.Frame):
             self.arg_c.get() or self.arg_r.get()
         )  # file arg is supplied whenever either a --report or a --count is specified.
 
+        if needFilearg and not os.path.exists(self.Cargs.get()):
+            os.makedirs(self.Cargs.get())
+
         if needFilearg and self.fargs.get() == ".":
             name = os.path.splitext(os.path.basename(self.pathVar.get()))[0]
             filePath = os.path.normpath(
                 os.path.join(self.Cargs.get(), name + ".file")
             )
-            # this creates the file that trace writes to, in order to persist
-            # tracing counts between runs.
-
             self.fargs.set(filePath)
 
         options = " ".join(
