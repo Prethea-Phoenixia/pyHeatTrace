@@ -13,7 +13,11 @@ from platform import system
 
 import psutil
 
-# BUNDLED_GPROF2DOT = "gprof2dot.py"
+
+USE_BUNDLED = False
+# flag to toggle whether to use system or the bundled version.
+# we might want to do this if in the future this becomes necessary
+BUNDLED_GPROF2DOT = "gprof2dot/gprof2dot.py"
 
 
 class ProfileToDot(tk.Frame):
@@ -536,9 +540,28 @@ class ProfileToDot(tk.Frame):
             )  # output dot file
 
         if self.d_arg_p.get() == ".":
-            # self.d_arg_p.set(os.pathsep.join(sys.path[1:]))
-            # self.d_arg_p.set(parentDir)
-            pass
+            normalizedPath = [
+                os.path.normpath(p) for p in sys.path[1:] + [parentDir]
+            ]
+            """
+            sys.path is modified in the following manner depending on the method
+            of invocation: (per https://docs.python.org/3/library/sys.html)
+
+                python -m module command line:
+                    prepend the current working directory.
+
+                python script.py command line:
+                    prepend the script’s directory. If it’s a symbolic link, resolve symbolic links.
+
+                python -c code and python (REPL) command lines:
+                    prepend an empty string, which means the current working directory.
+
+            parentDir is where the vast majority of calls would come from.
+            """
+            paths = os.pathsep.join(
+                p for p in normalizedPath if os.path.exists(p)
+            )
+            self.d_arg_p.set(paths)
 
         cProfileCmd = " ".join(
             arg
@@ -548,21 +571,25 @@ class ProfileToDot(tk.Frame):
                 "-o " + self.p_arg_o.get(),
                 "-s " + self.p_arg_s.get().split(" ")[0],
                 ("-m " if self.p_arg_m.get() else None),
-                fileName,
+                self.pathVar.get(),
                 "\n",
             )
             if arg is not None
         )
-        """
-        os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            BUNDLED_GPROF2DOT,
-        ),
-        """
+
         prof2dotCmd = " ".join(
             arg
             for arg in (
-                "python -m gprof2dot",
+                (
+                    os.path.normpath(
+                        os.path.join(
+                            os.path.dirname(os.path.abspath(__file__)),
+                            BUNDLED_GPROF2DOT,
+                        )
+                    )
+                    if USE_BUNDLED
+                    else "python -m gprof2dot"
+                ),
                 "-f pstats",
                 (
                     "-n " + self.d_arg_n.get()
@@ -591,7 +618,9 @@ class ProfileToDot(tk.Frame):
                 "--node-label=" + self.d_arg__node_label.get(),
                 "--skew=" + self.d_arg__skew.get(),
                 (
-                    "--path=" + self.d_arg_p.get()
+                    " ".join(
+                        "-p " + p for p in self.d_arg_p.get().split(os.pathsep)
+                    )
                     if self.d_arg_p.get() != ""
                     else None
                 ),  # filter path
