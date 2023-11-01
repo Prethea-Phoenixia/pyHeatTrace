@@ -23,7 +23,7 @@ import psutil
 BUNDLED_TEE_DIR = "tee-win32/tee-x64.exe"
 
 
-class heatTrace(tk.Frame):
+class Trace(tk.Frame):
     def __init__(self, parent):
         # use this instead of super() due to multiple inheritance
         ttk.Frame.__init__(self, parent)
@@ -31,7 +31,7 @@ class heatTrace(tk.Frame):
         self.pathVar = tk.StringVar(
             value=os.path.normpath(os.path.abspath(__file__))
         )
-        self.pack(expand=1, fill="both")  # pack the heatTrace frame in root.
+        self.pack(expand=1, fill="both")  # pack the Trace frame in root.
 
         # allow 3,1 to unconditionally take up more space as the window is resized
         self.columnconfigure(1, weight=1)
@@ -603,8 +603,8 @@ class heatTrace(tk.Frame):
 def main():
     root = tk.Tk()
     root.option_add("*tearOff", False)
-    root.title("pyHeatTrace")
-    heatTrace(root)
+    root.title("Lib/trace.py GUI")
+    Trace(root)
     root.mainloop()
 
 
