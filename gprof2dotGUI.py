@@ -3,6 +3,7 @@ import tkinter.ttk as ttk
 import tkinter.filedialog as tkfiledialog
 import tkinter.messagebox as tkmessagebox
 import subprocess as sp
+from time import strftime, localtime
 
 import sys
 import os
@@ -18,6 +19,7 @@ USE_BUNDLED = False
 # flag to toggle whether to use system or the bundled version.
 # we might want to do this if in the future this becomes necessary
 BUNDLED_GPROF2DOT = "gprof2dot/gprof2dot.py"
+BUNDLED_TEE_DIR = "tee-win32/tee-x64.exe"
 
 
 class ProfileToDot(tk.Frame):
@@ -273,14 +275,14 @@ class ProfileToDot(tk.Frame):
             variable=self.d_arg__self_time_percentage,
         ).grid(row=0, column=1, stick="nsew", padx=2, pady=2)
 
-        self.d_arg__total_time = tk.IntVar(value=1)
+        self.d_arg__total_time = tk.IntVar(value=0)
         ttk.Checkbutton(
             measureFrame,
             text="total-time",
             variable=self.d_arg__total_time,
         ).grid(row=0, column=2, stick="nsew", padx=2, pady=2)
 
-        self.d_arg__total_time_percentage = tk.IntVar(value=1)
+        self.d_arg__total_time_percentage = tk.IntVar(value=0)
         ttk.Checkbutton(
             measureFrame,
             text="total-time-percentage",
@@ -340,7 +342,7 @@ class ProfileToDot(tk.Frame):
 
         # allow 3,1 to unconditionally take up more space as the window is resized
         self.columnconfigure(1, weight=1)
-        self.rowconfigure(3, weight=1)
+        self.rowconfigure(2, weight=1)
 
         consoleFrame.columnconfigure(0, weight=1)
         consoleFrame.rowconfigure(0, weight=1)
@@ -659,6 +661,30 @@ class ProfileToDot(tk.Frame):
             if arg is not None
         )
 
+        if tee:
+            teePath = (
+                os.path.splitext(self.pathVar.get())[0]
+                + strftime("_%Y_%m_%d_%H_%M_%S", localtime())
+                + ".dot"
+            )
+            teeCommand = " ".join(
+                (
+                    (
+                        os.path.normpath(
+                            os.path.join(
+                                os.path.dirname(os.path.abspath(__file__)),
+                                BUNDLED_TEE_DIR,
+                            )
+                        )
+                        if system() == "Windows"
+                        else "tee"
+                    ),  # on Linux tee is a built in utility
+                    '"' + teePath + '"',
+                )
+            )
+        else:
+            teeCommand = None
+
         prof2dotCmd = " ".join(
             arg
             for arg in (
@@ -726,6 +752,7 @@ class ProfileToDot(tk.Frame):
                     else None
                 ),  # filter path
                 self.p_arg_o.get(),  # .pstats source file
+                ("| " + teeCommand if teeCommand else None),
                 "|",
                 "dot",
                 "-Tpng",  # to png? this is undocumented

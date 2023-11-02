@@ -272,7 +272,6 @@ class Mixture:
             its=its,
             tol=tol,
         )
-        print(Delta)
         if verbose:
             print("Mixture: {:} At: {:}K".format(self.name, T))
 
@@ -470,7 +469,7 @@ if __name__ == "__main__":
 
     print("HERE")
 
-    Ts = list(range(1600, 4000, 100))
+    Ts = list(range(1600, 4000, 10))
     for T in Ts:
         speciesList = ATKPRDS22.balanceAt(T, False)
 
