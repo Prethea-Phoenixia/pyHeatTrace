@@ -58,20 +58,25 @@ class ProfileToDot(tk.Frame):
         profileOptionFrame.grid(
             row=0, column=0, columnspan=3, sticky="nsew", padx=10, pady=10
         )
+        profileOptionFrame.columnconfigure(2, weight=1)
 
         # group of widgets responsible for selecting the target file.
         ttk.Label(profileOptionFrame, text="Profiled Program").grid(
             row=0, column=0, sticky="nsew", padx=2, pady=2
         )
+        self.p_arg_m = tk.IntVar()
+        ttk.Checkbutton(
+            profileOptionFrame, text="-m, --module", variable=self.p_arg_m
+        ).grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
         ttk.Entry(profileOptionFrame, textvariable=self.pathVar).grid(
-            row=0, column=1, sticky="nsew", padx=2, pady=2
+            row=0, column=2, sticky="nsew", padx=2, pady=2
         )
         ttk.Button(
             profileOptionFrame,
             text="Select Program",
             underline=7,
             command=self.loadProgramme,
-        ).grid(row=0, column=2, sticky="nsew", padx=2, pady=2)
+        ).grid(row=0, column=3, sticky="nsew", padx=2, pady=2)
 
         self.otherArgs = tk.StringVar()
         ttk.Label(profileOptionFrame, text="Program Arguments").grid(
@@ -80,26 +85,26 @@ class ProfileToDot(tk.Frame):
         ttk.Entry(
             profileOptionFrame,
             textvariable=self.otherArgs,
-        ).grid(row=1, column=1, columnspan=2, sticky="nsew", padx=2, pady=2)
+        ).grid(row=1, column=1, columnspan=3, sticky="nsew", padx=2, pady=2)
 
         self.p_arg_o = tk.StringVar(value=".")
         ttk.Label(profileOptionFrame, text="-o, --output").grid(
             row=2, column=0, sticky="nsew", padx=2, pady=2
         )
         ttk.Entry(profileOptionFrame, textvariable=self.p_arg_o).grid(
-            row=2, column=1, sticky="nsew", padx=2, pady=2
+            row=2, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
         )
-        profileOptionFrame.columnconfigure(1, weight=1)
+
         ttk.Button(
             profileOptionFrame,
             text="Select File",
             underline=7,
             command=lambda: self.p_arg_o.set(self.selectFile()),
-        ).grid(row=2, column=2, sticky="nsew", padx=2, pady=2)
+        ).grid(row=2, column=3, sticky="nsew", padx=2, pady=2)
 
         sortFrame = ttk.LabelFrame(profileOptionFrame, text="-s, --sort")
         sortFrame.grid(
-            row=3, column=0, columnspan=3, sticky="nsew", padx=2, pady=2
+            row=3, column=0, columnspan=4, sticky="nsew", padx=2, pady=2
         )
 
         for i in range(4):
@@ -654,6 +659,7 @@ class ProfileToDot(tk.Frame):
                     if self.p_arg_s_1.get().split(" ")[0] != ""
                     else None
                 ),
+                ("-m" if self.p_arg_m.get() else None),
                 self.pathVar.get(),
                 self.otherArgs.get(),
                 "\n",
