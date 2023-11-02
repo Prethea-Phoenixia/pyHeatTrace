@@ -30,40 +30,62 @@ class ProfileToDot(tk.Frame):
         )
         self.pack(expand=1, fill="both")  # pack the ProfileToDot frame in root.
 
+        self.addProfilerWidgets()
+        self.add2DotWidgets()
+
+        self.addConsoleWidgets()
+        self.addControlWidgets()
+
+        # make queues for keeping stdout and stderr whilst it is transferred between threads
+        self.outQueue = queue.Queue()
+        self.errQueue = queue.Queue()
+
+        # keep track of where any line that is submitted starts
+        self.line_start = 0
+
+        # make the enter key call the self.enter function
+        self.ttyText.bind("<Return>", self.enter)
+        # and make sure the user does not delete past the starting point.
+        self.ttyText.bind("<KeyRelease>", self.postKey)
+
+        self.startSubprocess()
+        self.writeLoop()  # start the write loop in the main thread
+
+    def addProfilerWidgets(self):
+        profileOptionFrame = ttk.LabelFrame(self, text="Profiler Options")
+        profileOptionFrame.grid(
+            row=0, column=0, columnspan=3, sticky="nsew", padx=10, pady=10
+        )
+
         # group of widgets responsible for selecting the target file.
-        ttk.Label(self, text="Profiled Program").grid(
+        ttk.Label(profileOptionFrame, text="Profiled Program").grid(
             row=0, column=0, sticky="nsew", padx=2, pady=2
         )
-        ttk.Entry(self, textvariable=self.pathVar, state="disabled").grid(
+        ttk.Entry(profileOptionFrame, textvariable=self.pathVar).grid(
             row=0, column=1, sticky="nsew", padx=2, pady=2
         )
         ttk.Button(
-            self,
+            profileOptionFrame,
             text="Select Program",
             underline=7,
             command=self.loadProgramme,
         ).grid(row=0, column=2, sticky="nsew", padx=2, pady=2)
 
-        profileOptionFrame = ttk.LabelFrame(self, text="Profiler Options")
-        profileOptionFrame.grid(
-            row=1, column=0, columnspan=3, sticky="nsew", padx=10, pady=10
+        self.otherArgs = tk.StringVar()
+        ttk.Label(profileOptionFrame, text="Program Arguments").grid(
+            row=1, column=0, stick="nsew", padx=2, pady=2
         )
-
-        self.p_arg_m = tk.IntVar()
-        ttk.Label(profileOptionFrame, text="-m, --module").grid(
-            row=0, column=0, stick="nsew", padx=2, pady=2
-        )
-        ttk.Checkbutton(
+        ttk.Entry(
             profileOptionFrame,
-            variable=self.p_arg_m,
-        ).grid(row=0, column=1, columnspan=2, sticky="nsew", padx=2, pady=2)
+            textvariable=self.otherArgs,
+        ).grid(row=1, column=1, columnspan=2, sticky="nsew", padx=2, pady=2)
 
         self.p_arg_o = tk.StringVar(value=".")
         ttk.Label(profileOptionFrame, text="-o, --output").grid(
-            row=1, column=0, sticky="nsew", padx=2, pady=2
+            row=2, column=0, sticky="nsew", padx=2, pady=2
         )
         ttk.Entry(profileOptionFrame, textvariable=self.p_arg_o).grid(
-            row=1, column=1, sticky="nsew", padx=2, pady=2
+            row=2, column=1, sticky="nsew", padx=2, pady=2
         )
         profileOptionFrame.columnconfigure(1, weight=1)
         ttk.Button(
@@ -71,18 +93,26 @@ class ProfileToDot(tk.Frame):
             text="Select File",
             underline=7,
             command=lambda: self.p_arg_o.set(self.selectFile()),
-        ).grid(row=1, column=2, sticky="nsew", padx=2, pady=2)
+        ).grid(row=2, column=2, sticky="nsew", padx=2, pady=2)
 
+        sortFrame = ttk.LabelFrame(profileOptionFrame, text="-s, --sort")
+        sortFrame.grid(
+            row=3, column=0, columnspan=3, sticky="nsew", padx=2, pady=2
+        )
+
+        for i in range(4):
+            if i % 2 == 0:
+                sortFrame.columnconfigure(i, weight=1)
+            else:
+                sortFrame.columnconfigure(i, weight=2)
         self.p_arg_s = (
             tk.StringVar()
         )  # note: this one contains (explanatory text in parenthesis)
-
-        ttk.Label(profileOptionFrame, text="-s, --sort").grid(
-            row=2, column=0, sticky="nsew", padx=2, pady=2
+        ttk.Label(sortFrame, text="primary option").grid(
+            row=0, column=0, sticky="nsew", padx=2, pady=2
         )
-
         p_s_Combobox = ttk.Combobox(
-            profileOptionFrame,
+            sortFrame,
             textvariable=self.p_arg_s,
             values=[
                 "calls (call count)",
@@ -98,14 +128,36 @@ class ProfileToDot(tk.Frame):
             state="readonly",
         )
         p_s_Combobox.current(0)
-        p_s_Combobox.grid(
-            row=2, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
+        p_s_Combobox.grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
+
+        self.p_arg_s_1 = tk.StringVar()
+        ttk.Label(sortFrame, text="secondary option").grid(
+            row=0, column=2, sticky="nsew", padx=2, pady=2
         )
+        p_s_1_Combobox = ttk.Combobox(
+            sortFrame,
+            textvariable=self.p_arg_s_1,
+            values=[
+                " (none)",
+                "calls (call count)",
+                "cumulative (cumulative time)",
+                "filename (file name)",
+                "pcalls (primitive call count)",
+                "line (line number)",
+                "name (function name)",
+                "nfl (name/file/line)",
+                "stdname (standard name)",
+                "time (internal time)",
+            ],
+            state="readonly",
+        )
+        p_s_1_Combobox.current(0)
+        p_s_1_Combobox.grid(row=0, column=3, sticky="nsew", padx=2, pady=2)
 
+    def add2DotWidgets(self):
         prof2dotOptionFrame = ttk.LabelFrame(self, text="prof2dot Options")
-
         prof2dotOptionFrame.grid(
-            row=2, column=0, columnspan=3, stick="nsew", padx=2, pady=2
+            row=1, column=0, columnspan=3, stick="nsew", padx=2, pady=2
         )
 
         self.d_arg_o = tk.StringVar(value=".")
@@ -202,24 +254,41 @@ class ProfileToDot(tk.Frame):
             prof2dotOptionFrame, variable=self.d_arg__SSamples
         ).grid(row=8, column=1, columnspan=2, sticky="nsew", padx=2, pady=2)
 
-        self.d_arg__node_label = tk.StringVar()
-        ttk.Label(prof2dotOptionFrame, text="--node-label=MEASURE").grid(
-            row=9, column=0, sticky="nsew", padx=2, pady=2
+        measureFrame = ttk.LabelFrame(
+            prof2dotOptionFrame, text="--node-label=MEASURE"
         )
-        d__node_label_Combobox = ttk.Combobox(
-            prof2dotOptionFrame,
-            textvariable=self.d_arg__node_label,
-            values=[
-                "self-time",
-                "self-time-percentage",
-                "total-time",
-                "total-time-percentage",
-            ],
-            state="readonly",
-        )
-        d__node_label_Combobox.current(3)
-        d__node_label_Combobox.grid(
-            row=9, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
+
+        for i in range(4):
+            measureFrame.columnconfigure(i, weight=1)
+
+        self.d_arg__self_time = tk.IntVar(value=1)
+        ttk.Checkbutton(
+            measureFrame, text="self-time", variable=self.d_arg__self_time
+        ).grid(row=0, column=0, stick="nsew", padx=2, pady=2)
+
+        self.d_arg__self_time_percentage = tk.IntVar(value=1)
+        ttk.Checkbutton(
+            measureFrame,
+            text="self-time-percentage",
+            variable=self.d_arg__self_time_percentage,
+        ).grid(row=0, column=1, stick="nsew", padx=2, pady=2)
+
+        self.d_arg__total_time = tk.IntVar(value=1)
+        ttk.Checkbutton(
+            measureFrame,
+            text="total-time",
+            variable=self.d_arg__total_time,
+        ).grid(row=0, column=2, stick="nsew", padx=2, pady=2)
+
+        self.d_arg__total_time_percentage = tk.IntVar(value=1)
+        ttk.Checkbutton(
+            measureFrame,
+            text="total-time-percentage",
+            variable=self.d_arg__total_time_percentage,
+        ).grid(row=0, column=3, stick="nsew", padx=2, pady=2)
+
+        measureFrame.grid(
+            row=9, column=0, columnspan=3, sticky="nsew", padx=2, pady=2
         )
 
         self.d_arg__skew = tk.StringVar(value="1.0")
@@ -239,9 +308,34 @@ class ProfileToDot(tk.Frame):
             row=11, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
         )
 
+        ignoreFrame = ttk.LabelFrame(
+            prof2dotOptionFrame, text="Autofill (leave .  to engage)"
+        )
+        ignoreFrame.grid(
+            row=12, column=0, columnspan=3, sticky="nsew", padx=2, pady=2
+        )
+
+        for i in range(2):
+            ignoreFrame.columnconfigure(i, weight=1)
+
+        self.d_autofill_sys = tk.IntVar(value=0)
+        ttk.Checkbutton(
+            ignoreFrame,
+            text="Python Module Paths",
+            variable=self.d_autofill_sys,
+        ).grid(row=0, column=0, stick="nsew", padx=2, pady=2)
+
+        self.d_autofill_loc = tk.IntVar(value=1)
+        ttk.Checkbutton(
+            ignoreFrame,
+            text="Program Local Directory",
+            variable=self.d_autofill_loc,
+        ).grid(row=0, column=1, stick="nsew", padx=2, pady=2)
+
+    def addConsoleWidgets(self):
         consoleFrame = ttk.LabelFrame(self, text="Console")
         consoleFrame.grid(
-            row=3, column=0, columnspan=3, sticky="nsew", padx=10, pady=10
+            row=2, column=0, columnspan=3, sticky="nsew", padx=10, pady=10
         )
 
         # allow 3,1 to unconditionally take up more space as the window is resized
@@ -284,8 +378,9 @@ class ProfileToDot(tk.Frame):
             selectforeground="red",
         )
 
+    def addControlWidgets(self):
         operationFrame = ttk.LabelFrame(self, text="Operations")
-        operationFrame.grid(row=4, column=0, columnspan=3, stick="nsew")
+        operationFrame.grid(row=3, column=0, columnspan=3, stick="nsew")
 
         for i in range(2):
             operationFrame.columnconfigure(index=i, weight=1)
@@ -302,21 +397,6 @@ class ProfileToDot(tk.Frame):
             text="Run Trace and Save to File",
             command=lambda: self.profile2dot(tee=True),
         ).grid(row=1, column=1, sticky="nsew", padx=2, pady=2)
-
-        # make queues for keeping stdout and stderr whilst it is transferred between threads
-        self.outQueue = queue.Queue()
-        self.errQueue = queue.Queue()
-
-        # keep track of where any line that is submitted starts
-        self.line_start = 0
-
-        # make the enter key call the self.enter function
-        self.ttyText.bind("<Return>", self.enter)
-        # and make sure the user does not delete past the starting point.
-        self.ttyText.bind("<KeyRelease>", self.postKey)
-
-        self.startSubprocess()
-        self.writeLoop()  # start the write loop in the main thread
 
     def loadProgramme(self):
         filePath = tkfiledialog.askopenfilename(
@@ -362,15 +442,6 @@ class ProfileToDot(tk.Frame):
                     )
                 )
                 tkmessagebox.showinfo("Exception", exceptionDesc)
-
-    def selectDirectory(self):
-        dirPath = tkfiledialog.askdirectory(
-            title="Select Directory for Cover File",
-            mustexist=False,
-            initialdir=".",  # set to local dir relative to where this script is stored
-        )
-
-        return os.path.normpath(dirPath)
 
     def selectFile(self):
         filePath = tkfiledialog.askopenfilename(
@@ -541,7 +612,11 @@ class ProfileToDot(tk.Frame):
 
         if self.d_arg_p.get() == ".":
             normalizedPath = [
-                os.path.normpath(p) for p in sys.path[1:] + [parentDir]
+                os.path.normpath(p)
+                for p in (
+                    (sys.path[1:] if self.d_autofill_sys.get() else [])
+                    + ([parentDir] if self.d_autofill_loc.get() else [])
+                )
             ]
             """
             sys.path is modified in the following manner depending on the method
@@ -551,10 +626,12 @@ class ProfileToDot(tk.Frame):
                     prepend the current working directory.
 
                 python script.py command line:
-                    prepend the script’s directory. If it’s a symbolic link, resolve symbolic links.
+                    prepend the script’s directory. If it’s a symbolic link,
+                    resolve symbolic links.
 
                 python -c code and python (REPL) command lines:
-                    prepend an empty string, which means the current working directory.
+                    prepend an empty string, which means the current working
+                    directory.
 
             parentDir is where the vast majority of calls would come from.
             """
@@ -570,8 +647,13 @@ class ProfileToDot(tk.Frame):
                 "cProfile",
                 "-o " + self.p_arg_o.get(),
                 "-s " + self.p_arg_s.get().split(" ")[0],
-                ("-m " if self.p_arg_m.get() else None),
+                (
+                    "-s " + self.p_arg_s_1.get().split(" ")[0]
+                    if self.p_arg_s_1.get().split(" ")[0] != ""
+                    else None
+                ),
                 self.pathVar.get(),
+                self.otherArgs.get(),
                 "\n",
             )
             if arg is not None
@@ -615,7 +697,26 @@ class ProfileToDot(tk.Frame):
                 ),
                 ("-w" if self.d_arg_w.get() else None),
                 ("--show-samples" if self.d_arg__SSamples.get() else None),
-                "--node-label=" + self.d_arg__node_label.get(),
+                (
+                    "--node-label=self-time"
+                    if self.d_arg__self_time.get()
+                    else None
+                ),
+                (
+                    "--node-label=self-time-percentage"
+                    if self.d_arg__self_time_percentage.get()
+                    else None
+                ),
+                (
+                    "--node-label=total-time"
+                    if self.d_arg__total_time.get()
+                    else None
+                ),
+                (
+                    "--node-label=total-time-percentage"
+                    if self.d_arg__total_time_percentage.get()
+                    else None
+                ),
                 "--skew=" + self.d_arg__skew.get(),
                 (
                     " ".join(
