@@ -15,13 +15,6 @@ from platform import system
 import psutil
 
 
-USE_BUNDLED = False
-# flag to toggle whether to use system or the bundled version.
-# we might want to do this if in the future this becomes necessary
-BUNDLED_GPROF2DOT = "gprof2dot/gprof2dot.py"
-BUNDLED_TEE_DIR = "tee-win32/tee-x64.exe"
-
-
 class ProfileToDot(tk.Frame):
     def __init__(self, parent):
         # use this instead of super() due to multiple inheritance
@@ -32,8 +25,7 @@ class ProfileToDot(tk.Frame):
         )
         self.pack(expand=1, fill="both")  # pack the ProfileToDot frame in root.
 
-        self.addProfilerWidgets()
-        self.add2DotWidgets()
+        self.addCallGraphWidgets()
 
         self.addConsoleWidgets()
         self.addControlWidgets()
@@ -56,293 +48,15 @@ class ProfileToDot(tk.Frame):
         self.startSubprocess()
         self.writeLoop()  # start the write loop in the main thread
 
-    def addProfilerWidgets(self):
-        profileOptionFrame = ttk.LabelFrame(self, text="Profiler Options")
-        profileOptionFrame.grid(
-            row=0, column=0, sticky="nsew", padx=10, pady=10
-        )
-        profileOptionFrame.columnconfigure(2, weight=1)
-
-        # group of widgets responsible for selecting the target file.
-        ttk.Label(profileOptionFrame, text="Profiled Program").grid(
-            row=0, column=0, sticky="nsew", padx=2, pady=2
-        )
-        self.p_arg_m = tk.IntVar()
-        ttk.Checkbutton(
-            profileOptionFrame, text="-m, --module", variable=self.p_arg_m
-        ).grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
-        ttk.Entry(profileOptionFrame, textvariable=self.pathVar).grid(
-            row=0, column=2, sticky="nsew", padx=2, pady=2
-        )
-        ttk.Button(
-            profileOptionFrame,
-            text="Select Program",
-            underline=7,
-            command=self.loadProgramme,
-        ).grid(row=0, column=3, sticky="nsew", padx=2, pady=2)
-
-        self.otherArgs = tk.StringVar()
-        ttk.Label(profileOptionFrame, text="Program Arguments").grid(
-            row=1, column=0, stick="nsew", padx=2, pady=2
-        )
-        ttk.Entry(
-            profileOptionFrame,
-            textvariable=self.otherArgs,
-        ).grid(row=1, column=1, columnspan=3, sticky="nsew", padx=2, pady=2)
-
-        self.p_arg_o = tk.StringVar(value=".")
-        ttk.Label(profileOptionFrame, text="-o, --output").grid(
-            row=2, column=0, sticky="nsew", padx=2, pady=2
-        )
-        ttk.Entry(profileOptionFrame, textvariable=self.p_arg_o).grid(
-            row=2, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
-        )
-
-        ttk.Button(
-            profileOptionFrame,
-            text="Select File",
-            underline=7,
-            command=lambda: self.p_arg_o.set(self.selectFile()),
-        ).grid(row=2, column=3, sticky="nsew", padx=2, pady=2)
-
-        sortFrame = ttk.LabelFrame(profileOptionFrame, text="-s, --sort")
-        sortFrame.grid(
-            row=3, column=0, columnspan=4, sticky="nsew", padx=2, pady=2
-        )
-
-        for i in range(4):
-            if i % 2 == 0:
-                sortFrame.columnconfigure(i, weight=1)
-            else:
-                sortFrame.columnconfigure(i, weight=2)
-        self.p_arg_s = (
-            tk.StringVar()
-        )  # note: this one contains (explanatory text in parenthesis)
-        ttk.Label(sortFrame, text="primary option").grid(
-            row=0, column=0, sticky="nsew", padx=2, pady=2
-        )
-        p_s_Combobox = ttk.Combobox(
-            sortFrame,
-            textvariable=self.p_arg_s,
-            values=[
-                "calls (call count)",
-                "cumulative (cumulative time)",
-                "filename (file name)",
-                "pcalls (primitive call count)",
-                "line (line number)",
-                "name (function name)",
-                "nfl (name/file/line)",
-                "stdname (standard name)",
-                "time (internal time)",
-            ],
-            state="readonly",
-        )
-        p_s_Combobox.current(0)
-        p_s_Combobox.grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
-
-        self.p_arg_s_1 = tk.StringVar()
-        ttk.Label(sortFrame, text="secondary option").grid(
-            row=0, column=2, sticky="nsew", padx=2, pady=2
-        )
-        p_s_1_Combobox = ttk.Combobox(
-            sortFrame,
-            textvariable=self.p_arg_s_1,
-            values=[
-                " (none)",
-                "calls (call count)",
-                "cumulative (cumulative time)",
-                "filename (file name)",
-                "pcalls (primitive call count)",
-                "line (line number)",
-                "name (function name)",
-                "nfl (name/file/line)",
-                "stdname (standard name)",
-                "time (internal time)",
-            ],
-            state="readonly",
-        )
-        p_s_1_Combobox.current(0)
-        p_s_1_Combobox.grid(row=0, column=3, sticky="nsew", padx=2, pady=2)
-
-    def add2DotWidgets(self):
-        prof2dotOptionFrame = ttk.LabelFrame(self, text="prof2dot Options")
-        prof2dotOptionFrame.grid(row=1, column=0, stick="nsew", padx=2, pady=2)
-
-        self.d_arg_o = tk.StringVar(value=".")
-        ttk.Label(prof2dotOptionFrame, text="-o FILE, --output=").grid(
-            row=0, column=0, sticky="nsew", padx=2, pady=2
-        )
-        ttk.Entry(prof2dotOptionFrame, textvariable=self.d_arg_o).grid(
-            row=0, column=1, sticky="nsew", padx=2, pady=2
-        )
-        prof2dotOptionFrame.columnconfigure(1, weight=1)
-        ttk.Button(
-            prof2dotOptionFrame,
-            text="Select File",
-            underline=7,
-            command=lambda: self.d_arg_o.set(self.selectFile()),
-        ).grid(row=0, column=2, sticky="nsew", padx=2, pady=2)
-
-        self.d_arg_n = tk.StringVar(value="0.5")
-        ttk.Label(
-            prof2dotOptionFrame, text="-n PERCENTAGE, --node-thres="
-        ).grid(row=1, column=0, sticky="nsew", padx=2, pady=2)
-        ttk.Entry(prof2dotOptionFrame, textvariable=self.d_arg_n).grid(
-            row=1, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
-        )
-
-        self.d_arg_e = tk.StringVar(value="0.1")
-        ttk.Label(
-            prof2dotOptionFrame, text="-e PERCENTAGE, --edge-thres="
-        ).grid(row=2, column=0, sticky="nsew", padx=2, pady=2)
-        ttk.Entry(prof2dotOptionFrame, textvariable=self.d_arg_e).grid(
-            row=2, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
-        )
-
-        self.d_arg__total = tk.StringVar()
-
-        ttk.Label(prof2dotOptionFrame, text="-total=TOTALMETHOD").grid(
-            row=3, column=0, sticky="nsew", padx=2, pady=2
-        )
-        d__total_Combobox = ttk.Combobox(
-            prof2dotOptionFrame,
-            textvariable=self.d_arg__total,
-            values=["callratios", "callstacks"],
-            state="readonly",
-        )
-        d__total_Combobox.grid(
-            row=3, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
-        )
-        d__total_Combobox.current(0)  # default: call-ratio
-
-        self.d_arg_c = tk.StringVar()
-        ttk.Label(prof2dotOptionFrame, text="-c THEME, --colormap=").grid(
-            row=4, column=0, sticky="nsew", padx=2, pady=2
-        )
-        d_c_Combobox = ttk.Combobox(
-            prof2dotOptionFrame,
-            textvariable=self.d_arg_c,
-            values=["bw", "color", "gray", "pink", "print"],
-            state="readonly",
-        )
-        d_c_Combobox.grid(
-            row=4, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
-        )
-        d_c_Combobox.current(1)  # default: color
-
-        self.d_arg_s = tk.StringVar()
-        ttk.Label(prof2dotOptionFrame, text="-s, --strip").grid(
-            row=5, column=0, sticky="nsew", padx=2, pady=2
-        )
-        ttk.Entry(prof2dotOptionFrame, textvariable=self.d_arg_s).grid(
-            row=5, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
-        )
-
-        self.d_arg__CNBSelftime = tk.IntVar()
-        ttk.Label(prof2dotOptionFrame, text="-color-nodes-by-selftime").grid(
-            row=6, column=0, sticky="nsew", padx=2, pady=2
-        )
-        ttk.Checkbutton(
-            prof2dotOptionFrame, variable=self.d_arg__CNBSelftime
-        ).grid(row=6, column=1, columnspan=2, sticky="nsew", padx=2, pady=2)
-
-        self.d_arg_w = tk.IntVar()
-        ttk.Label(prof2dotOptionFrame, text="-w, --wrap").grid(
-            row=7, column=0, sticky="nsew", padx=2, pady=2
-        )
-        ttk.Checkbutton(prof2dotOptionFrame, variable=self.d_arg_w).grid(
-            row=7, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
-        )
-
-        self.d_arg__SSamples = tk.IntVar()
-        ttk.Label(prof2dotOptionFrame, text="--show-samples").grid(
-            row=8, column=0, sticky="nsew", padx=2, pady=2
-        )
-        ttk.Checkbutton(
-            prof2dotOptionFrame, variable=self.d_arg__SSamples
-        ).grid(row=8, column=1, columnspan=2, sticky="nsew", padx=2, pady=2)
-
-        measureFrame = ttk.LabelFrame(
-            prof2dotOptionFrame, text="--node-label=MEASURE"
-        )
-
-        for i in range(4):
-            measureFrame.columnconfigure(i, weight=1)
-
-        self.d_arg__self_time = tk.IntVar(value=1)
-        ttk.Checkbutton(
-            measureFrame, text="self-time", variable=self.d_arg__self_time
-        ).grid(row=0, column=0, stick="nsew", padx=2, pady=2)
-
-        self.d_arg__self_time_percentage = tk.IntVar(value=1)
-        ttk.Checkbutton(
-            measureFrame,
-            text="self-time-percentage",
-            variable=self.d_arg__self_time_percentage,
-        ).grid(row=0, column=1, stick="nsew", padx=2, pady=2)
-
-        self.d_arg__total_time = tk.IntVar(value=0)
-        ttk.Checkbutton(
-            measureFrame,
-            text="total-time",
-            variable=self.d_arg__total_time,
-        ).grid(row=0, column=2, stick="nsew", padx=2, pady=2)
-
-        self.d_arg__total_time_percentage = tk.IntVar(value=0)
-        ttk.Checkbutton(
-            measureFrame,
-            text="total-time-percentage",
-            variable=self.d_arg__total_time_percentage,
-        ).grid(row=0, column=3, stick="nsew", padx=2, pady=2)
-
-        measureFrame.grid(
-            row=9, column=0, columnspan=3, sticky="nsew", padx=2, pady=2
-        )
-
-        self.d_arg__skew = tk.StringVar(value="1.0")
-        ttk.Label(prof2dotOptionFrame, text="--skew=THEME_SKEW").grid(
-            row=10, column=0, sticky="nsew", padx=2, pady=2
-        )
-        ttk.Entry(prof2dotOptionFrame, textvariable=self.d_arg__skew).grid(
-            row=10, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
-        )
-
-        # we skip all the prune calls for now.
-        self.d_arg_p = tk.StringVar(value=".")
-        ttk.Label(prof2dotOptionFrame, text="-p FILTER_PATHS, --path=").grid(
-            row=11, column=0, sticky="nsew", padx=2, pady=2
-        )
-        ttk.Entry(prof2dotOptionFrame, textvariable=self.d_arg_p).grid(
-            row=11, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
-        )
-
-        ignoreFrame = ttk.LabelFrame(
-            prof2dotOptionFrame, text="Autofill (leave .  to engage)"
-        )
-        ignoreFrame.grid(
-            row=12, column=0, columnspan=3, sticky="nsew", padx=2, pady=2
-        )
-
-        for i in range(2):
-            ignoreFrame.columnconfigure(i, weight=1)
-
-        self.d_autofill_sys = tk.IntVar(value=0)
-        ttk.Checkbutton(
-            ignoreFrame,
-            text="Python Module Paths",
-            variable=self.d_autofill_sys,
-        ).grid(row=0, column=0, stick="nsew", padx=2, pady=2)
-
-        self.d_autofill_loc = tk.IntVar(value=1)
-        ttk.Checkbutton(
-            ignoreFrame,
-            text="Program Local Directory",
-            variable=self.d_autofill_loc,
-        ).grid(row=0, column=1, stick="nsew", padx=2, pady=2)
+    def addCallGraphWidgets(self):
+        callgraphFrame = ttk.LabelFrame(self, text="pyCallgraph(2) Options")
+        callgraphFrame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
     def addConsoleWidgets(self):
         consoleFrame = ttk.LabelFrame(self, text="Console")
-        consoleFrame.grid(row=2, column=0, sticky="nsew", padx=10, pady=10)
+        consoleFrame.grid(
+            row=1, column=0, columnspan=3, sticky="nsew", padx=10, pady=10
+        )
 
         # allow 3,1 to unconditionally take up more space as the window is resized
 
@@ -384,7 +98,7 @@ class ProfileToDot(tk.Frame):
 
     def addControlWidgets(self):
         operationFrame = ttk.LabelFrame(self, text="Operations")
-        operationFrame.grid(row=3, column=0, stick="nsew")
+        operationFrame.grid(row=2, column=0, columnspan=3, stick="nsew")
 
         for i in range(2):
             operationFrame.columnconfigure(index=i, weight=1)
@@ -773,7 +487,7 @@ class ProfileToDot(tk.Frame):
 def main():
     root = tk.Tk()
     root.option_add("*tearOff", False)
-    root.title("cProfile + gprof2dot GUI")
+    root.title("pyCallGraph2 GUI")
     ProfileToDot(root)
     root.mainloop()
 
