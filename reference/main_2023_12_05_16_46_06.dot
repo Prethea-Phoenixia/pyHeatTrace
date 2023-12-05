@@ -1,6 +1,0 @@
-digraph {
-	graph [fontname=Arial, nodesep=0.125, ranksep=0.25];
-	node [fontcolor=white, fontname=Arial, height=0, shape=box, style=filled, width=0];
-	edge [fontname=Arial];
-	39 [color="#ff0000", fontcolor="#ffffff", fontsize="10.00", label="main:1:<module>\n(2.61e-05)\n(0.00%)\n1×", tooltip="C:\\Users\\Thinkpad\\Documents\\GitHub\\pyHeatTrace\\reference\\main.py"];
-}

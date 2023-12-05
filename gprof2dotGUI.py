@@ -39,7 +39,7 @@ class ProfileToDot(tk.Frame):
         self.addControlWidgets()
 
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=1)
 
         # make queues for keeping stdout and stderr whilst it is transferred between threads
         self.outQueue = queue.Queue()
@@ -238,29 +238,30 @@ class ProfileToDot(tk.Frame):
             row=5, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
         )
 
-        self.d_arg__CNBSelftime = tk.IntVar()
-        ttk.Label(prof2dotOptionFrame, text="-color-nodes-by-selftime").grid(
-            row=6, column=0, sticky="nsew", padx=2, pady=2
+        miscFrame = tk.Frame(prof2dotOptionFrame)
+        miscFrame.grid(
+            row=6, column=0, columnspan=3, sticky="nsew", padx=10, pady=10
         )
+
+        for i in range(3):
+            miscFrame.columnconfigure(i, weight=1)
+
+        self.d_arg__CNBSelftime = tk.IntVar()
         ttk.Checkbutton(
-            prof2dotOptionFrame, variable=self.d_arg__CNBSelftime
-        ).grid(row=6, column=1, columnspan=2, sticky="nsew", padx=2, pady=2)
+            miscFrame,
+            text="--color-nodes-by-selftime",
+            variable=self.d_arg__CNBSelftime,
+        ).grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
 
         self.d_arg_w = tk.IntVar()
-        ttk.Label(prof2dotOptionFrame, text="-w, --wrap").grid(
-            row=7, column=0, sticky="nsew", padx=2, pady=2
-        )
-        ttk.Checkbutton(prof2dotOptionFrame, variable=self.d_arg_w).grid(
-            row=7, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
-        )
+        ttk.Checkbutton(
+            miscFrame, text="-w, --wrap", variable=self.d_arg_w
+        ).grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
 
         self.d_arg__SSamples = tk.IntVar()
-        ttk.Label(prof2dotOptionFrame, text="--show-samples").grid(
-            row=8, column=0, sticky="nsew", padx=2, pady=2
-        )
         ttk.Checkbutton(
-            prof2dotOptionFrame, variable=self.d_arg__SSamples
-        ).grid(row=8, column=1, columnspan=2, sticky="nsew", padx=2, pady=2)
+            miscFrame, text="--show-samples", variable=self.d_arg__SSamples
+        ).grid(row=0, column=2, sticky="nsew", padx=2, pady=2)
 
         measureFrame = ttk.LabelFrame(
             prof2dotOptionFrame, text="--node-label=MEASURE"
@@ -353,7 +354,11 @@ class ProfileToDot(tk.Frame):
         scroll.grid(row=0, column=1, sticky="nsew", padx=0, pady=0)
 
         self.ttyText = tk.Text(
-            consoleFrame, wrap=tk.CHAR, undo=True, yscrollcommand=scroll.set
+            consoleFrame,
+            wrap=tk.CHAR,
+            undo=True,
+            yscrollcommand=scroll.set,
+            height=10,
         )
 
         scroll.config(command=self.ttyText.yview)

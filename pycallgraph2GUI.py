@@ -25,7 +25,7 @@ class ProfileToDot(tk.Frame):
         )
         self.pack(expand=1, fill="both")  # pack the ProfileToDot frame in root.
 
-        self.addCallGraphWidgets()
+        self.addCallgraphWidgets()
 
         self.addConsoleWidgets()
         self.addControlWidgets()
@@ -48,15 +48,158 @@ class ProfileToDot(tk.Frame):
         self.startSubprocess()
         self.writeLoop()  # start the write loop in the main thread
 
-    def addCallGraphWidgets(self):
+    def addCallgraphWidgets(self):
         callgraphFrame = ttk.LabelFrame(self, text="pyCallgraph(2) Options")
         callgraphFrame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
+        callgraphFrame.columnconfigure(1, weight=1)
+        # group of widgets responsible for selecting the target file.
+        ttk.Label(callgraphFrame, text="Program").grid(
+            row=0, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(callgraphFrame, textvariable=self.pathVar).grid(
+            row=0, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Button(
+            callgraphFrame,
+            text="Select Program",
+            underline=7,
+            command=self.loadProgramme,
+        ).grid(row=0, column=3, sticky="nsew", padx=2, pady=2)
+
+        self.programArgs = (
+            tk.StringVar()
+        )  # additional arguments supplied to the profiled program
+        ttk.Label(callgraphFrame, text="arguments").grid(
+            row=1, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(callgraphFrame, textvariable=self.programArgs).grid(
+            row=1, column=1, columnspan=3, sticky="nsew", padx=2, pady=2
+        )
+
+        self.output = tk.StringVar(value=".")
+        ttk.Label(callgraphFrame, text="-o, --output").grid(
+            row=2, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(callgraphFrame, textvariable=self.output).grid(
+            row=2, column=1, sticky="nsew", padx=2, pady=2
+        )
+        self.outputFormat = tk.StringVar()
+        outFmtCombobox = ttk.Combobox(
+            callgraphFrame,
+            textvariable=self.outputFormat,
+            values=["png", "svg"],
+            state="readonly",
+            width=5,
+        )
+        outFmtCombobox.current(0)
+        outFmtCombobox.grid(row=2, column=2, sticky="nsew", padx=2, pady=2)
+
+        ttk.Button(
+            callgraphFrame,
+            text="Select File",
+            underline=7,
+            command=lambda: self.output.set(self.selectFile()),
+        ).grid(row=2, column=3, sticky="nsew", padx=2, pady=2)
+
+        self.excludes = tk.StringVar()
+        ttk.Label(callgraphFrame, text="--exclude").grid(
+            row=3, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(callgraphFrame, textvariable=self.excludes).grid(
+            row=3, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Button(
+            callgraphFrame,
+            text="Load Exclude",
+            underline=5,
+            command=lambda: self.excludes.set(self.loadText()),
+        ).grid(row=3, column=3, sticky="nsew", padx=2, pady=2)
+
+        self.includes = tk.StringVar()
+        ttk.Label(callgraphFrame, text="--include").grid(
+            row=4, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(callgraphFrame, textvariable=self.includes).grid(
+            row=4, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Button(
+            callgraphFrame,
+            text="Load Include",
+            underline=5,
+            command=lambda: self.includes.set(self.loadText()),
+        ).grid(row=4, column=3, sticky="nsew", padx=2, pady=2)
+
+        checkFrame = tk.Frame(callgraphFrame)
+        checkFrame.grid(
+            row=5, column=0, columnspan=4, sticky="nsew", padx=2, pady=2
+        )
+
+        for i in range(4):
+            checkFrame.columnconfigure(i, weight=1)
+
+        self.includePyCallgraph = tk.IntVar(value=0)
+        ttk.Checkbutton(
+            checkFrame,
+            text="--include-pycallgraph",
+            variable=self.includePyCallgraph,
+        ).grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
+
+        self.stdLib = tk.IntVar(value=0)
+        ttk.Checkbutton(
+            checkFrame,
+            text="-s, --stdlib",
+            variable=self.stdLib,
+        ).grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
+
+        self.memory = tk.IntVar(value=0)
+        ttk.Checkbutton(
+            checkFrame,
+            text="-m, --memory",
+            variable=self.memory,
+        ).grid(row=0, column=2, sticky="nsew", padx=2, pady=2)
+
+        self.noGroups = tk.IntVar()
+        ttk.Checkbutton(
+            checkFrame,
+            text="-ng, --no-groups",
+            variable=self.noGroups,
+        ).grid(row=0, column=3, sticky="nsew", padx=2, pady=2)
+
+        self.verbose = tk.IntVar(value=1)
+        ttk.Checkbutton(
+            checkFrame,
+            text="-v, --verbose",
+            variable=self.verbose,
+        ).grid(row=1, column=0, sticky="nsew", padx=2, pady=2)
+
+        self.debug = tk.IntVar()
+        ttk.Checkbutton(
+            checkFrame, text="-d, --debug", variable=self.debug
+        ).grid(row=1, column=1, sticky="nsew", padx=2, pady=2)
+
+        self.threaded = tk.IntVar()
+        ttk.Checkbutton(
+            checkFrame,
+            text="-t, --threaded",
+            variable=self.threaded,
+        ).grid(row=1, column=2, sticky="nsew", padx=2, pady=2)
+
+        self.maxDepth = tk.StringVar()
+        ttk.Label(callgraphFrame, text="--max-depth").grid(
+            row=6, column=2, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(callgraphFrame, textvariable=self.maxDepth, width=5).grid(
+            row=6,
+            column=3,
+            sticky="nsew",
+            padx=2,
+            pady=2,
+        )
+
     def addConsoleWidgets(self):
         consoleFrame = ttk.LabelFrame(self, text="Console")
-        consoleFrame.grid(
-            row=1, column=0, columnspan=3, sticky="nsew", padx=10, pady=10
-        )
+        consoleFrame.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
 
         # allow 3,1 to unconditionally take up more space as the window is resized
 
@@ -98,7 +241,7 @@ class ProfileToDot(tk.Frame):
 
     def addControlWidgets(self):
         operationFrame = ttk.LabelFrame(self, text="Operations")
-        operationFrame.grid(row=2, column=0, columnspan=3, stick="nsew")
+        operationFrame.grid(row=2, column=0, stick="nsew")
 
         for i in range(2):
             operationFrame.columnconfigure(index=i, weight=1)
@@ -108,12 +251,12 @@ class ProfileToDot(tk.Frame):
         ).grid(row=0, column=0, columnspan=2, sticky="nsew", padx=2, pady=2)
 
         ttk.Button(
-            operationFrame, text="Run Trace", command=self.profile2dot
+            operationFrame, text="Run Trace", command=self.callgraph
         ).grid(row=1, column=0, sticky="nsew", padx=2, pady=2)
         ttk.Button(
             operationFrame,
             text="Run Trace and Save to File",
-            command=lambda: self.profile2dot(tee=True),
+            command=self.callgraph,
         ).grid(row=1, column=1, sticky="nsew", padx=2, pady=2)
 
     def loadProgramme(self):
@@ -121,8 +264,6 @@ class ProfileToDot(tk.Frame):
             title="Load Programme to be Analyzed",
             filetypes=(("Python Programme", "*.py"),),
             defaultextension=".py",
-            initialfile="main.py",
-            initialdir=".",  # set to local dir relative to where this script is stored
         )
 
         exceptionMsg = "Exception:"
@@ -132,13 +273,11 @@ class ProfileToDot(tk.Frame):
             self.pathVar.set(os.path.normpath(filePath))
             self.navigateToFolder()
 
-    def loadIgnore(self):
+    def loadText(self):
         filePath = tkfiledialog.askopenfilename(
-            title="Ignored Modules",
+            title="Load Text Definition",
             filetypes=(("Text File", "*.txt"),),
             defaultextension=".txt",
-            initialfile="ignore.txt",
-            initialdir=".",  # set to local dir relative to where this script is stored
         )
 
         if filePath == "":
@@ -148,7 +287,7 @@ class ProfileToDot(tk.Frame):
                 with open(os.path.normpath(filePath), "rt") as file:
                     ignores = file.read()
 
-                self.ignored_module.set(ignores.replace("\n", ""))
+                return ignores.replace("\n", "")
 
             except (
                 Exception
@@ -166,8 +305,6 @@ class ProfileToDot(tk.Frame):
             title="Select File",
             filetypes=(("File", "*.*"),),
             defaultextension=".*",
-            initialfile="",
-            initialdir=".",  # set to local dir relative to where this script is stored
         )
 
         return os.path.normpath(
@@ -246,10 +383,11 @@ class ProfileToDot(tk.Frame):
             "cd {:}\n".format(folderPath).encode()
         )  # This is also platform independent.
         self.p.stdin.flush()
-
-        self.p_arg_o.set(".")
+        """self.p_arg_o.set(".")
         self.d_arg_o.set(".")
-        self.d_arg_p.set(".")
+        self.d_arg_p.set(".")"""
+
+        self.output.set(".")
 
     def write(self, string, tag=None):
         self.ttyText.insert(tk.END, string, tag)
@@ -307,180 +445,81 @@ class ProfileToDot(tk.Frame):
         self.startSubprocess()
         self.navigateToFolder()
 
-    def profile2dot(self, tee=False):
+    def callgraph(self, tee=False):
         parentDir, fileName = os.path.split(
             self.pathVar.get()
         )  # drive:/path/to/file.ext -> drive:/path/to/, file.ext
         file, ext = os.path.splitext(fileName)
-        profileDir = file + "_profile"
+        profileDir = file + "_trace"
         profilePath = os.path.normpath(os.path.join(parentDir, profileDir))
 
         if not os.path.exists(profilePath):
             os.makedirs(profilePath)
 
-        if self.p_arg_o.get() == "." or self.p_arg_o.get() == "":
-            self.p_arg_o.set(
-                os.path.normpath(os.path.join(profilePath, file + ".pstats"))
-            )  # output pstats file location
-
-        if self.d_arg_o.get() == "." or self.d_arg_o.get() == "":
-            self.d_arg_o.set(
-                os.path.normpath(os.path.join(profilePath, file + ".png"))
-            )  # output dot file
-
-        if self.d_arg_p.get() == ".":
-            normalizedPath = [
-                os.path.normpath(p)
-                for p in (
-                    (sys.path[1:] if self.d_autofill_sys.get() else [])
-                    + ([parentDir] if self.d_autofill_loc.get() else [])
-                )
-            ]
-            """
-            sys.path is modified in the following manner depending on the method
-            of invocation: (per https://docs.python.org/3/library/sys.html)
-
-                python -m module command line:
-                    prepend the current working directory.
-
-                python script.py command line:
-                    prepend the script’s directory. If it’s a symbolic link,
-                    resolve symbolic links.
-
-                python -c code and python (REPL) command lines:
-                    prepend an empty string, which means the current working
-                    directory.
-
-            parentDir is where the vast majority of calls would come from.
-            """
-            paths = os.pathsep.join(
-                p for p in normalizedPath if os.path.exists(p)
-            )
-            self.d_arg_p.set(paths)
-
-        cProfileCmd = " ".join(
-            arg
-            for arg in (
-                "python -m",
-                "cProfile",
-                "-o " + self.p_arg_o.get(),
-                "-s " + self.p_arg_s.get().split(" ")[0],
-                (
-                    "-s " + self.p_arg_s_1.get().split(" ")[0]
-                    if self.p_arg_s_1.get().split(" ")[0] != ""
-                    else None
-                ),
-                ("-m" if self.p_arg_m.get() else None),
-                self.pathVar.get(),
-                self.otherArgs.get(),
-                "\n",
-            )
-            if arg is not None
-        )
-
-        if tee:
-            teePath = (
-                os.path.splitext(self.pathVar.get())[0]
-                + strftime("_%Y_%m_%d_%H_%M_%S", localtime())
-                + ".dot"
-            )
-            teeCommand = " ".join(
-                (
-                    (
-                        os.path.normpath(
-                            os.path.join(
-                                os.path.dirname(os.path.abspath(__file__)),
-                                BUNDLED_TEE_DIR,
-                            )
-                        )
-                        if system() == "Windows"
-                        else "tee"
-                    ),  # on Linux tee is a built in utility
-                    '"' + teePath + '"',
+        if self.output.get() == ".":
+            self.output.set(
+                os.path.normpath(
+                    os.path.join(
+                        profilePath, file + "." + self.outputFormat.get()
+                    )
                 )
             )
         else:
-            teeCommand = None
+            self.output.set(
+                os.path.splitext(self.output.get())[0]
+                + "."
+                + self.outputFormat.get()
+            )
 
-        prof2dotCmd = " ".join(
+        cmd = " ".join(
             arg
             for arg in (
-                (
-                    os.path.normpath(
-                        os.path.join(
-                            os.path.dirname(os.path.abspath(__file__)),
-                            BUNDLED_GPROF2DOT,
-                        )
-                    )
-                    if USE_BUNDLED
-                    else "python -m gprof2dot"
-                ),
-                "-f pstats",
-                (
-                    "-n " + self.d_arg_n.get()
-                    if self.d_arg_n.get() != ""
-                    else None
-                ),
-                (
-                    "-e " + self.d_arg_e.get()
-                    if self.d_arg_e.get() != ""
-                    else None
-                ),
-                "--total=" + self.d_arg__total.get(),
-                "-c " + self.d_arg_c.get(),
-                (
-                    "-s " + self.d_arg_s.get()
-                    if self.d_arg_s.get() != ""
-                    else None
-                ),
-                (
-                    "--color-nodes-by-selftime"
-                    if self.d_arg__CNBSelftime.get()
-                    else None
-                ),
-                ("-w" if self.d_arg_w.get() else None),
-                ("--show-samples" if self.d_arg__SSamples.get() else None),
-                (
-                    "--node-label=self-time"
-                    if self.d_arg__self_time.get()
-                    else None
-                ),
-                (
-                    "--node-label=self-time-percentage"
-                    if self.d_arg__self_time_percentage.get()
-                    else None
-                ),
-                (
-                    "--node-label=total-time"
-                    if self.d_arg__total_time.get()
-                    else None
-                ),
-                (
-                    "--node-label=total-time-percentage"
-                    if self.d_arg__total_time_percentage.get()
-                    else None
-                ),
-                "--skew=" + self.d_arg__skew.get(),
+                "pycallgraph.py",
+                "-v" if self.verbose.get() else None,
+                "-d" if self.debug.get() else None,
+                "-ng" if self.noGroups.get() else None,
+                "-s" if self.stdLib.get() else None,
+                "-m" if self.memory.get() else None,
+                "-t" if self.threaded.get() else None,
+                "--include-pycallgraph"
+                if self.includePyCallgraph.get()
+                else None,
+                "--max-depth " + self.maxDepth.get()
+                if self.maxDepth.get() != ""
+                else None,
                 (
                     " ".join(
-                        "-p " + p for p in self.d_arg_p.get().split(os.pathsep)
+                        [
+                            '-i "' + i.strip() + '"'
+                            for i in self.includes.get().split(",")
+                        ]
                     )
-                    if self.d_arg_p.get() != ""
-                    else None
-                ),  # filter path
-                self.p_arg_o.get(),  # .pstats source file
-                ("| " + teeCommand if teeCommand else None),
-                "|",
-                "dot",
-                "-Tpng",  # to png? this is undocumented
-                "-o " + self.d_arg_o.get(),  # output to png
+                )
+                if self.includes.get() != ""
+                else None,
+                (
+                    " ".join(
+                        [
+                            '-e "' + e.strip() + '"'
+                            for e in self.excludes.get().split(",")
+                        ]
+                    )
+                )
+                if self.excludes.get() != ""
+                else None,
+                "graphviz",
+                "--output-file=" + self.output.get()
+                if self.output.get != ""
+                else "--",
+                "--output-format=" + self.outputFormat.get(),
+                self.pathVar.get(),
+                self.programArgs.get(),
                 "\n",
             )
             if arg is not None
         )
-        self.p.stdin.write(cProfileCmd.encode())
-        self.p.stdin.flush()
-        self.p.stdin.write(prof2dotCmd.encode())
+
+        self.p.stdin.write(cmd.encode())
         self.p.stdin.flush()
 
 
