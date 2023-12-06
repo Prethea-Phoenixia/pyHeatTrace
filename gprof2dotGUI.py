@@ -166,7 +166,9 @@ class ProfileToDot(tk.Frame):
 
     def add2DotWidgets(self):
         prof2dotOptionFrame = ttk.LabelFrame(self, text="prof2dot Options")
-        prof2dotOptionFrame.grid(row=1, column=0, stick="nsew", padx=2, pady=2)
+        prof2dotOptionFrame.grid(
+            row=1, column=0, stick="nsew", padx=10, pady=10
+        )
 
         self.d_arg_o = tk.StringVar(value=".")
         ttk.Label(prof2dotOptionFrame, text="-o FILE, --output=").grid(
@@ -471,8 +473,10 @@ class ProfileToDot(tk.Frame):
         self.alive = False
         # write exit() to the console in order to stop it running
 
-        self.p.terminate()  # this, if the above didn't work, sends a Termination signal
-        self.p.kill()  # and a kill signal. On windows this is the same.
+        self.endSubprocess()
+
+        # self.p.terminate()  # this, if the above didn't work, sends a Termination signal
+        # self.p.kill()  # and a kill signal. On windows this is the same.
         # these methods are a lot more effective than sending "exit" and flushing
 
         # call the destroy methods to properly destroy widgets

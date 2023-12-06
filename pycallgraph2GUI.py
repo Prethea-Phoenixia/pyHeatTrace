@@ -3,7 +3,6 @@ import tkinter.ttk as ttk
 import tkinter.filedialog as tkfiledialog
 import tkinter.messagebox as tkmessagebox
 import subprocess as sp
-from time import strftime, localtime
 
 import sys
 import os
@@ -15,7 +14,7 @@ from platform import system
 import psutil
 
 
-class ProfileToDot(tk.Frame):
+class Callgraph(tk.Frame):
     def __init__(self, parent):
         # use this instead of super() due to multiple inheritance
         ttk.Frame.__init__(self, parent)
@@ -23,7 +22,7 @@ class ProfileToDot(tk.Frame):
         self.pathVar = tk.StringVar(
             value=os.path.normpath(os.path.abspath(__file__))
         )
-        self.pack(expand=1, fill="both")  # pack the ProfileToDot frame in root.
+        self.pack(expand=1, fill="both")  # pack the Callgraph frame in root.
 
         self.addCallgraphWidgets()
 
@@ -102,32 +101,27 @@ class ProfileToDot(tk.Frame):
             command=lambda: self.output.set(self.selectFile()),
         ).grid(row=2, column=3, sticky="nsew", padx=2, pady=2)
 
-        self.excludes = tk.StringVar()
-        ttk.Label(callgraphFrame, text="--exclude").grid(
-            row=3, column=0, sticky="nsew", padx=2, pady=2
-        )
-        ttk.Entry(callgraphFrame, textvariable=self.excludes).grid(
-            row=3, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
-        )
-        ttk.Button(
-            callgraphFrame,
-            text="Load Exclude",
-            underline=5,
-            command=lambda: self.excludes.set(self.loadText()),
-        ).grid(row=3, column=3, sticky="nsew", padx=2, pady=2)
+        self.inexcludes = tk.StringVar()
+        self.inexmode = tk.StringVar()
 
-        self.includes = tk.StringVar()
-        ttk.Label(callgraphFrame, text="--include").grid(
-            row=4, column=0, sticky="nsew", padx=2, pady=2
+        outFmtCombobox = ttk.Combobox(
+            callgraphFrame,
+            textvariable=self.inexmode,
+            values=["--exclude", "--include"],
+            state="readonly",
+            width=10,
         )
-        ttk.Entry(callgraphFrame, textvariable=self.includes).grid(
+        outFmtCombobox.current(0)
+        outFmtCombobox.grid(row=4, column=0, sticky="nsew", padx=2, pady=2)
+
+        ttk.Entry(callgraphFrame, textvariable=self.inexcludes).grid(
             row=4, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
         )
         ttk.Button(
             callgraphFrame,
-            text="Load Include",
+            text="Load In/Excludes",
             underline=5,
-            command=lambda: self.includes.set(self.loadText()),
+            command=lambda: self.inexcludes.set(self.loadText()),
         ).grid(row=4, column=3, sticky="nsew", padx=2, pady=2)
 
         checkFrame = tk.Frame(callgraphFrame)
@@ -248,16 +242,11 @@ class ProfileToDot(tk.Frame):
 
         ttk.Button(
             operationFrame, text="Reset Console", command=self.restart
-        ).grid(row=0, column=0, columnspan=2, sticky="nsew", padx=2, pady=2)
+        ).grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
 
         ttk.Button(
             operationFrame, text="Run Trace", command=self.callgraph
-        ).grid(row=1, column=0, sticky="nsew", padx=2, pady=2)
-        ttk.Button(
-            operationFrame,
-            text="Run Trace and Save to File",
-            command=self.callgraph,
-        ).grid(row=1, column=1, sticky="nsew", padx=2, pady=2)
+        ).grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
 
     def loadProgramme(self):
         filePath = tkfiledialog.askopenfilename(
@@ -299,6 +288,8 @@ class ProfileToDot(tk.Frame):
                     )
                 )
                 tkmessagebox.showinfo("Exception", exceptionDesc)
+
+        return ""
 
     def selectFile(self):
         filePath = tkfiledialog.askopenfilename(
@@ -383,9 +374,6 @@ class ProfileToDot(tk.Frame):
             "cd {:}\n".format(folderPath).encode()
         )  # This is also platform independent.
         self.p.stdin.flush()
-        """self.p_arg_o.set(".")
-        self.d_arg_o.set(".")
-        self.d_arg_p.set(".")"""
 
         self.output.set(".")
 
@@ -450,7 +438,7 @@ class ProfileToDot(tk.Frame):
             self.pathVar.get()
         )  # drive:/path/to/file.ext -> drive:/path/to/, file.ext
         file, ext = os.path.splitext(fileName)
-        profileDir = file + "_trace"
+        profileDir = file + "_call"
         profilePath = os.path.normpath(os.path.join(parentDir, profileDir))
 
         if not os.path.exists(profilePath):
@@ -490,22 +478,12 @@ class ProfileToDot(tk.Frame):
                 (
                     " ".join(
                         [
-                            '-i "' + i.strip() + '"'
-                            for i in self.includes.get().split(",")
+                            f'{self.inexmode.get()} "' + i.strip() + '"'
+                            for i in self.inexcludes.get().split(",")
                         ]
                     )
                 )
-                if self.includes.get() != ""
-                else None,
-                (
-                    " ".join(
-                        [
-                            '-e "' + e.strip() + '"'
-                            for e in self.excludes.get().split(",")
-                        ]
-                    )
-                )
-                if self.excludes.get() != ""
+                if self.inexcludes.get() != ""
                 else None,
                 "graphviz",
                 "--output-file=" + self.output.get()
@@ -527,7 +505,7 @@ def main():
     root = tk.Tk()
     root.option_add("*tearOff", False)
     root.title("pyCallGraph2 GUI")
-    ProfileToDot(root)
+    Callgraph(root)
     root.mainloop()
 
 

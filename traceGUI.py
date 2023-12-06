@@ -378,8 +378,10 @@ class Trace(tk.Frame):
         self.alive = False
         # write exit() to the console in order to stop it running
 
-        self.p.terminate()  # this, if the above didn't work, sends a Termination signal
-        self.p.kill()  # and a kill signal. On windows this is the same.
+        self.endSubprocess()
+
+        # self.p.terminate()  # this, if the above didn't work, sends a Termination signal
+        # self.p.kill()  # and a kill signal. On windows this is the same.
         # these methods are a lot more effective than sending "exit" and flushing
 
         # call the destroy methods to properly destroy widgets
