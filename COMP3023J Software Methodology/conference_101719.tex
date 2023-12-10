@@ -62,18 +62,30 @@ Of note is that due to the converging interest in developing better techniques f
 % 最后是我们的研究目的，这个后期分析的目标定了之后要重写一下
 Consequently, this research aims to explore and compare various options for tracing Python code visualization, and demonstrate the use of these techniques for a better understanding of complex Python projects.\par
 
-\section{Previous Art} % <翟> Literature Review -> Previous Art
+\section{Previous Art} 
+\iffalse
+% <翟> Literature Review -> Previous Art
 % <翟> 这个是前几天一直在忙的那个python自带的trace，讲一下它的大概情况
 Lib/trace.py is the tool bundled with CPython, the reference implementation for Python language\cite{cpythonlibtracepy}. Written in the early 2000s, it has been part of the official library from as early as Python 2.2. It provides both program execution tracing and code coverage analysis functionality, and even a limited profiling ability. Implementation-wise, it attaches a tracing funciton (via \textit{sys.settrace()}), written in Python, that is attached to the evaluation mechanism in the underlying Python interpreter, and is called during the normal execution of CPython\cite{trace}. As for usability, it supports both programmatic invocation and via the command line.\par
 
 Coverage.py is a more recent third-party code coverage package that started in 2009 and has apparently gained some official endorsement\cite{batchelder_2023_coveragepy}. It employs a similar strategy, but differs in its implementation, specifically using a trace function in C. This avoids the overhead involved with converting C data types to Python ones and calling a Python function from C code for each evaluation, in exchange for some overhead at the end of tracing \cite{a2011_how}. Through this, the impact of tracing on program execution can almost be eliminated. Given the package's focus on coverage analysis, it provides less exportable information with regard to program execution flow besides coverage information. From a users perspective, although execution is limited to command line invocation, it supports more modern formats for reporting, including in HTML and such. \par
+\fi
+
+
+Lib/trace.py is the tool bundled with CPython, the reference implementation for Python language\cite{cpythonlibtracepy}. Written in the early 2000s, it has been part of the official library from as early as Python 2.2. It provides both program execution tracing and code coverage analysis functionality, and even a limited profiling ability. Implementation-wise, it attaches a tracing funciton (via \textit{sys.settrace()}), written in Python, that is attached to the evaluation mechanism in the underlying Python interpreter, and is called during the normal execution of CPython\cite{trace}. Although the module itself does not provide for much in terms of visualization, in recent years a few projects have emerged that has taken care of that. This work will examine one such project, \textit{vizTracer}.
+
 
 Various Python profilers, in particular profiling tools bundled with CPython as part of the standard library, the \textit{profile} and the C implementation \textit{cProfile} are also of some interest. As deterministic profilers, they records and expose the Python call stack for each evaluation, allowing program execution tracing to be inferred. Due to the wealth of information recorded, over the years, many projects that visualizes program execution has built upon its output. Notable ones includes: \par
 \begin{enumerate}
-    \item RunSnakeRun. Generates a variation of tree map using performance statistics. Call relation implied by geometrical relations.
-    \item GProf2Dot and PyCallgraph. Generates a directed arrow-and-box graph with performance statistics, broken down based on call relations.
+    \item \textit{RunSnakeRun}. Generates a variation of tree map using performance statistics. Call relation implied by geometrical relations.
+    \item \textit{GProf2Dot} and \textit{PyCallgraph}. Generates a directed arrow-and-box graph with performance statistics, broken down based on call relations.
 \end{enumerate}
-Of note is that not all profilers are suitable for our purposes. In particular, non-deterministic profilers works by sampling, at set intervals, the memory layout of the Python interpreter, thus they are suitable for low overhead programm profiling, but unsuitable when capturing function calls for analysis are required, since there is no guarantee of the completeness of the resulting capture. Solutions based on these will be ignored for the purpose of this study.
+Of note is that not all profilers are suitable for our purposes. In particular, non-deterministic profilers works by sampling, at set intervals, the memory layout of the Python interpreter, thus they are suitable for low overhead programm profiling, but unsuitable when capturing function calls for analysis are required, since there is no guarantee of the completeness of the resulting capture. Solutions based on these will be ignored for the purpose of this study.\par
+
+
+Finally it bears mentioning that an emerging technique employed in the visualizaiton of tracing information is that of %引用一下这个https://arxiv.org/pdf/2103.00587.pdf
+static code analysis. In particular, sophisticated models have been proposed in academica to analyze Python code that has demonstrated limited ability to infer call relation without running the code. However, due to the dynamically typed, interpreted nature of Python, this approach has met some challenges when met with complex code structure, dynamic or conditional imports, and deep class hierarchies. \par
+
 
 \section{Methodology}
 Describe the way that you do your own research and how you are going to explore the thesis statement that you made. 

@@ -130,35 +130,35 @@ class VizTracer(tk.Frame):
             variable=self.sanitizeFunctionName,
         ).grid(row=0, column=2, sticky="nsew", padx=2, pady=2)
 
-        self.logException = tk.IntVar(value=1)
+        self.logException = tk.IntVar(value=0)
         ttk.Checkbutton(
             checkFrame,
             text="--log_exception",
             variable=self.logException,
         ).grid(row=1, column=0, sticky="nsew", padx=2, pady=2)
 
-        self.logExit = tk.IntVar(value=1)
+        self.logExit = tk.IntVar(value=0)
         ttk.Checkbutton(
             checkFrame,
             text="--log_exit",
             variable=self.logExit,
         ).grid(row=1, column=1, sticky="nsew", padx=2, pady=2)
 
-        self.logFuncArgs = tk.IntVar(value=1)
+        self.logFuncArgs = tk.IntVar(value=0)
         ttk.Checkbutton(
             checkFrame,
             text="--log_func_args",
             variable=self.logFuncArgs,
         ).grid(row=1, column=2, sticky="nsew", padx=2, pady=2)
 
-        self.logFuncRetval = tk.IntVar(value=1)
+        self.logFuncRetval = tk.IntVar(value=0)
         ttk.Checkbutton(
             checkFrame,
             text="--log_func_retval",
             variable=self.logFuncRetval,
         ).grid(row=1, column=3, sticky="nsew", padx=2, pady=2)
 
-        self.logPrint = tk.IntVar(value=1)
+        self.logPrint = tk.IntVar(value=0)
         ttk.Checkbutton(
             checkFrame,
             text="--log_print",

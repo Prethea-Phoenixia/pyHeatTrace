@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2023.11.9)  10 DEC 2023 16:29
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2023.11.9)  10 DEC 2023 16:56
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -351,22 +351,24 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 36.
 
 (c:/texlive/2023/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-) [1{c:/texlive/2023/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{c:/texlive/2
-023/texmf-dist/fonts/enc/dvips/base/8r.enc}
+)
+Underfull \hbox (badness 1990) in paragraph at lines 81--82
+[]\OT1/ptm/m/it/10 GProf2Dot \OT1/ptm/m/n/10 and \OT1/ptm/m/it/10 Py-Call-graph
+\OT1/ptm/m/n/10 . Gen-er-ates a di-rected
+ []
+
+[1{c:/texlive/2023/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{c:/texlive/202
+3/texmf-dist/fonts/enc/dvips/base/8r.enc}
 
 
 ]
-Underfull \hbox (badness 2573) in paragraph at lines 74--75
-[]\OT1/ptm/m/n/10 GProf2Dot and Py-Call-graph. Gen-er-ates a di-rected
- []
-
 <figures/Gantt.png, id=10, 1839.87375pt x 716.17563pt>
 File: figures/Gantt.png Graphic file (type png)
 <use figures/Gantt.png>
-Package pdftex.def Info: figures/Gantt.png  used on input line 116.
+Package pdftex.def Info: figures/Gantt.png  used on input line 128.
 (pdftex.def)             Requested size: 478.3559pt x 186.20126pt.
-[2] (./conference_101719.bbl
-Underfull \hbox (badness 1565) in paragraph at lines 25--28
+ [2] (./conference_101719.bbl
+Underfull \hbox (badness 2368) in paragraph at lines 25--28
 []\OT1/ptm/m/n/8 A. Saabith, M. Fa-reez, and T. Vinothraj, ``Python cur-rent tr
 end
  []
@@ -375,7 +377,7 @@ LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 6
 4.
 (c:/texlive/2023/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
-) [3 <./figures/Gantt.png>])
+))
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -387,31 +389,29 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[4
-
-] (./conference_101719.aux)
+[3 <./figures/Gantt.png>] (./conference_101719.aux)
  ***********
 LaTeX2e <2023-11-01>
 L3 programming layer <2023-11-01>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 5689 strings out of 474271
- 86111 string characters out of 5751527
+ 5687 strings out of 474271
+ 86072 string characters out of 5751527
  1941533 words of memory out of 5000000
- 27841 multiletter control sequences out of 15000+600000
+ 27839 multiletter control sequences out of 15000+600000
  597024 words of font info for 112 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 57i,11n,65p,944b,336s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 57i,11n,65p,924b,336s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb><c:/texl
 ive/2023/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><c:/texlive/2023/texmf-dis
 t/fonts/type1/urw/times/utmbi8a.pfb><c:/texlive/2023/texmf-dist/fonts/type1/urw
 /times/utmr8a.pfb><c:/texlive/2023/texmf-dist/fonts/type1/urw/times/utmri8a.pfb
 >
-Output written on conference_101719.pdf (4 pages, 234281 bytes).
+Output written on conference_101719.pdf (3 pages, 233861 bytes).
 PDF statistics:
- 46 PDF objects out of 1000 (max. 8388607)
- 27 compressed objects within 1 object stream
+ 43 PDF objects out of 1000 (max. 8388607)
+ 25 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  6 words of extra memory for PDF output out of 10000 (max. 10000000)
 
