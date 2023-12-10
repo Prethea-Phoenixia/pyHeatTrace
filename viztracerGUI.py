@@ -200,6 +200,20 @@ class VizTracer(tk.Frame):
             variable=self.ignoreMltiprocess,
         ).grid(row=3, column=1, sticky="nsew", padx=2, pady=2)
 
+        self.includedDir = tk.StringVar(value=os.pathsep.join(sys.path[1:]))
+        ttk.Label(tracerFrame, text="--include").grid(
+            row=4, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(tracerFrame, textvariable=self.includedDir).grid(
+            row=4, column=1, columnspan=2, stick="nsew", padx=2, pady=2
+        )
+        ttk.Button(
+            tracerFrame,
+            text="Select Directory",
+            underline=5,
+            command=lambda: self.includedDir.set(self.selectDirectory()),
+        ).grid(row=4, column=3, sticky="nsew", padx=2, pady=2)
+
     def addViewerWidgets(self):
         viewerFrame = ttk.LabelFrame(self, text="vizViewer Options")
         viewerFrame.grid(row=1, column=0, stick="nsew", padx=10, pady=10)
@@ -303,6 +317,15 @@ class VizTracer(tk.Frame):
         return os.path.normpath(
             filePath
         )  # this will convert an empty selection to "."
+
+    def selectDirectory(self):
+        dirPath = tkfiledialog.askdirectory(
+            title="Select Directory for Cover File",
+            mustexist=False,
+            initialdir=".",  # set to local dir relative to where this script is stored
+        )
+
+        return os.path.normpath(dirPath)  # allow bare
 
     def destroy(self):  #
         """This is the function that is automatically called when the widget is
@@ -469,6 +492,9 @@ class VizTracer(tk.Frame):
                 "viztracer",
                 "--ignore_frozen" if self.ignoreFrozen.get() else None,
                 "--ignore_c_function" if self.ignoreCFunction.get() else None,
+                '--include_files "' + self.includedDir.get() + '"'
+                if self.includedDir.get()
+                else None,
                 "--sanitize_function_name"
                 if self.sanitizeFunctionName.get()
                 else None,
