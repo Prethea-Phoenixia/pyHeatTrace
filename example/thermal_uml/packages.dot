@@ -1,0 +1,21 @@
+digraph "packages" {
+rankdir=BT
+charset="utf-8"
+"thermal" [color="black", label=<thermal>, shape="box", style="solid"];
+"thermal.corner" [color="black", label=<thermal.corner>, shape="box", style="solid"];
+"thermal.main" [color="black", label=<thermal.main>, shape="box", style="solid"];
+"thermal.nasa7" [color="black", label=<thermal.nasa7>, shape="box", style="solid"];
+"thermal.num" [color="black", label=<thermal.num>, shape="box", style="solid"];
+"thermal.periodic" [color="black", label=<thermal.periodic>, shape="box", style="solid"];
+"thermal.rkf78" [color="black", label=<thermal.rkf78>, shape="box", style="solid"];
+"thermal.therm" [color="black", label=<thermal.therm>, shape="box", style="solid"];
+"thermal.umf" [color="black", label=<thermal.umf>, shape="box", style="solid"];
+"thermal.corner" -> "thermal.nasa7" [arrowhead="open", arrowtail="none"];
+"thermal.corner" -> "thermal.num" [arrowhead="open", arrowtail="none"];
+"thermal.main" -> "thermal.therm" [arrowhead="open", arrowtail="none"];
+"thermal.nasa7" -> "thermal.periodic" [arrowhead="open", arrowtail="none"];
+"thermal.num" -> "thermal.rkf78" [arrowhead="open", arrowtail="none"];
+"thermal.therm" -> "thermal.corner" [arrowhead="open", arrowtail="none"];
+"thermal.therm" -> "thermal.num" [arrowhead="open", arrowtail="none"];
+"thermal.therm" -> "thermal.periodic" [arrowhead="open", arrowtail="none"];
+}

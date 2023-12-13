@@ -199,8 +199,8 @@ class VizTracer(tk.Frame):
             text="--ignore_multiprocess",
             variable=self.ignoreMltiprocess,
         ).grid(row=3, column=1, sticky="nsew", padx=2, pady=2)
-
-        self.includedDir = tk.StringVar(value=os.pathsep.join(sys.path[1:]))
+        # value=os.pathsep.join(sys.path[1:])
+        self.includedDir = tk.StringVar()
         ttk.Label(tracerFrame, text="--include").grid(
             row=4, column=0, sticky="nsew", padx=2, pady=2
         )

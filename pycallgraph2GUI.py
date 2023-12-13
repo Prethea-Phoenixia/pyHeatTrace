@@ -13,6 +13,8 @@ from platform import system
 
 import psutil
 
+EXCLUDE_DEFAULT = "pycallgraph_excluded.txt"
+
 
 class Callgraph(tk.Frame):
     def __init__(self, parent):
@@ -87,7 +89,7 @@ class Callgraph(tk.Frame):
         outFmtCombobox = ttk.Combobox(
             callgraphFrame,
             textvariable=self.outputFormat,
-            values=["png", "svg"],
+            values=["svg", "png"],
             state="readonly",
             width=5,
         )
@@ -101,7 +103,16 @@ class Callgraph(tk.Frame):
             command=lambda: self.output.set(self.selectFile()),
         ).grid(row=2, column=3, sticky="nsew", padx=2, pady=2)
 
-        self.inexcludes = tk.StringVar()
+        self.inexcludes = tk.StringVar(
+            value=self.loadText(
+                os.path.normpath(
+                    os.path.join(
+                        os.path.dirname(os.path.abspath(__file__)),
+                        EXCLUDE_DEFAULT,
+                    )
+                )
+            )
+        )
         self.inexmode = tk.StringVar()
 
         outFmtCombobox = ttk.Combobox(
@@ -262,12 +273,13 @@ class Callgraph(tk.Frame):
             self.pathVar.set(os.path.normpath(filePath))
             self.navigateToFolder()
 
-    def loadText(self):
-        filePath = tkfiledialog.askopenfilename(
-            title="Load Text Definition",
-            filetypes=(("Text File", "*.txt"),),
-            defaultextension=".txt",
-        )
+    def loadText(self, filePath=None):
+        if filePath is None:
+            filePath = tkfiledialog.askopenfilename(
+                title="Load Text Definition",
+                filetypes=(("Text File", "*.txt"),),
+                defaultextension=".txt",
+            )
 
         if filePath == "":
             tkmessagebox.showinfo("Exception:", "No File Selected")
@@ -433,7 +445,7 @@ class Callgraph(tk.Frame):
         self.startSubprocess()
         self.navigateToFolder()
 
-    def callgraph(self, tee=False):
+    def callgraph(self):
         parentDir, fileName = os.path.split(
             self.pathVar.get()
         )  # drive:/path/to/file.ext -> drive:/path/to/, file.ext

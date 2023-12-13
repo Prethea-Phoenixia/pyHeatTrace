@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2023.11.9)  10 DEC 2023 16:56
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2023.11.9)  13 DEC 2023 18:23
 entering extended mode
- restricted \write18 enabled.
+ \write18 enabled.
  %&-line parsing enabled.
-**conference_101719.tex
-(./conference_101719.tex
+**report.tex
+(./report.tex
 LaTeX2e <2023-11-01>
 L3 programming layer <2023-11-01>
 (./IEEEtran.cls
@@ -264,71 +264,229 @@ Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \@float@everytoks=\toks25
 \@floatcapt=\box56
 )
-(c:/texlive/2023/texmf-dist/tex/latex/listings/listings.sty
-\lst@mode=\count284
-\lst@gtempboxa=\box57
-\lst@token=\toks26
-\lst@length=\count285
-\lst@currlwidth=\dimen175
-\lst@column=\count286
-\lst@pos=\count287
-\lst@lostspace=\dimen176
-\lst@width=\dimen177
-\lst@newlines=\count288
-\lst@lineno=\count289
-\lst@maxwidth=\dimen178
+(c:/texlive/2023/texmf-dist/tex/latex/svg/svg.sty
+Package: svg 2020/11/26 v2.02k (include SVG pictures)
+
+(c:/texlive/2023/texmf-dist/tex/generic/iftex/iftex.sty
+Package: iftex 2022/02/03 v1.0f TeX engine tests
+)
+(c:/texlive/2023/texmf-dist/tex/latex/koma-script/scrbase.sty
+Package: scrbase 2023/07/07 v3.41 KOMA-Script package (KOMA-Script-independent 
+basics and keyval usage)
+
+(c:/texlive/2023/texmf-dist/tex/latex/koma-script/scrlfile.sty
+Package: scrlfile 2023/07/07 v3.41 KOMA-Script package (file load hooks)
+
+(c:/texlive/2023/texmf-dist/tex/latex/koma-script/scrlfile-hook.sty
+Package: scrlfile-hook 2023/07/07 v3.41 KOMA-Script package (using LaTeX hooks)
+
+
+(c:/texlive/2023/texmf-dist/tex/latex/koma-script/scrlogo.sty
+Package: scrlogo 2023/07/07 v3.41 KOMA-Script package (logo)
+)))
+Applying: [2021/05/01] Usage of raw or classic option list on input line 252.
+Already applied: [0000/00/00] Usage of raw or classic option list on input line
+ 368.
+)
+(c:/texlive/2023/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty
+Package: pdftexcmds 2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO
+)
+
+(c:/texlive/2023/texmf-dist/tex/generic/infwarerr/infwarerr.sty
+Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
+)
+(c:/texlive/2023/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty
+Package: ltxcmds 2020-05-10 v1.25 LaTeX kernel commands for general use (HO)
+)
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+)
+(c:/texlive/2023/texmf-dist/tex/latex/trimspaces/trimspaces.sty
+Package: trimspaces 2009/09/17 v1.1 Trim spaces around a token list
+)
+(c:/texlive/2023/texmf-dist/tex/latex/tools/shellesc.sty
+Package: shellesc 2023/07/08 v1.0d unified shell escape interface for LaTeX
+Package shellesc Info: Unrestricted shell escape enabled on input line 75.
+)
+(c:/texlive/2023/texmf-dist/tex/latex/ifplatform/ifplatform.sty
+Package: ifplatform 2017/10/13 v0.4a Testing for the operating system
+
+(c:/texlive/2023/texmf-dist/tex/generic/catchfile/catchfile.sty
+Package: catchfile 2019/12/09 v1.8 Catch the contents of a file (HO)
+
+(c:/texlive/2023/texmf-dist/tex/generic/etexcmds/etexcmds.sty
+Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
+))
+(c:/texlive/2023/texmf-dist/tex/generic/iftex/ifluatex.sty
+Package: ifluatex 2019/10/25 v1.5 ifluatex legacy package. Use iftex instead.
+))
+\c@svg@param@lastpage=\count284
+\svg@box=\box57
+\c@svg@param@currpage=\count285
+)
+(c:/texlive/2023/texmf-dist/tex/latex/transparent/transparent.sty
+Package: transparent 2022-10-27 v1.5 Transparency with color stacks
+
+(c:/texlive/2023/texmf-dist/tex/latex/transparent/transparent-nometadata.sty
+Package: transparent-nometadata 2022-10-27 v1.5 Transparency via pdfTeX's color
+ stack (HO)
+
+(c:/texlive/2023/texmf-dist/tex/latex/auxhook/auxhook.sty
+Package: auxhook 2019-12-17 v1.6 Hooks for auxiliary files (HO)
+)))
+(c:/texlive/2023/texmf-dist/tex/latex/pgf/systemlayer/pgfsys.sty
+(c:/texlive/2023/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty
+(c:/texlive/2023/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.tex
+\pgfutil@everybye=\toks26
+\pgfutil@tempdima=\dimen175
+\pgfutil@tempdimb=\dimen176
+)
+(c:/texlive/2023/texmf-dist/tex/generic/pgf/utilities/pgfutil-latex.def
+\pgfutil@abb=\box58
+)
+(c:/texlive/2023/texmf-dist/tex/generic/pgf/utilities/pgfrcs.code.tex
+(c:/texlive/2023/texmf-dist/tex/generic/pgf/pgf.revision.tex)
+Package: pgfrcs 2023-01-15 v3.1.10 (3.1.10)
+))
+(c:/texlive/2023/texmf-dist/tex/generic/pgf/systemlayer/pgfsys.code.tex
+Package: pgfsys 2023-01-15 v3.1.10 (3.1.10)
+
+(c:/texlive/2023/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex
+\pgfkeys@pathtoks=\toks27
+\pgfkeys@temptoks=\toks28
+
+(c:/texlive/2023/texmf-dist/tex/generic/pgf/utilities/pgfkeyslibraryfiltered.co
+de.tex
+\pgfkeys@tmptoks=\toks29
+))
+\pgf@x=\dimen177
+\pgf@y=\dimen178
+\pgf@xa=\dimen179
+\pgf@ya=\dimen180
+\pgf@xb=\dimen181
+\pgf@yb=\dimen182
+\pgf@xc=\dimen183
+\pgf@yc=\dimen184
+\pgf@xd=\dimen185
+\pgf@yd=\dimen186
+\w@pgf@writea=\write3
+\r@pgf@reada=\read2
+\c@pgf@counta=\count286
+\c@pgf@countb=\count287
+\c@pgf@countc=\count288
+\c@pgf@countd=\count289
+\t@pgf@toka=\toks30
+\t@pgf@tokb=\toks31
+\t@pgf@tokc=\toks32
+\pgf@sys@id@count=\count290
+ (c:/texlive/2023/texmf-dist/tex/generic/pgf/systemlayer/pgf.cfg
+File: pgf.cfg 2023-01-15 v3.1.10 (3.1.10)
+)
+Driver file for pgf: pgfsys-pdftex.def
+
+(c:/texlive/2023/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-pdftex.def
+File: pgfsys-pdftex.def 2023-01-15 v3.1.10 (3.1.10)
+
+(c:/texlive/2023/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-common-pdf.def
+File: pgfsys-common-pdf.def 2023-01-15 v3.1.10 (3.1.10)
+)))
+(c:/texlive/2023/texmf-dist/tex/generic/pgf/systemlayer/pgfsyssoftpath.code.tex
+File: pgfsyssoftpath.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfsyssoftpath@smallbuffer@items=\count291
+\pgfsyssoftpath@bigbuffer@items=\count292
+)
+(c:/texlive/2023/texmf-dist/tex/generic/pgf/systemlayer/pgfsysprotocol.code.tex
+File: pgfsysprotocol.code.tex 2023-01-15 v3.1.10 (3.1.10)
+)) (c:/texlive/2023/texmf-dist/tex/latex/listings/listings.sty
+\lst@mode=\count293
+\lst@gtempboxa=\box59
+\lst@token=\toks33
+\lst@length=\count294
+\lst@currlwidth=\dimen187
+\lst@column=\count295
+\lst@pos=\count296
+\lst@lostspace=\dimen188
+\lst@width=\dimen189
+\lst@newlines=\count297
+\lst@lineno=\count298
+\lst@maxwidth=\dimen190
 
 (c:/texlive/2023/texmf-dist/tex/latex/listings/lstmisc.sty
 File: lstmisc.sty 2023/02/27 1.9 (Carsten Heinz)
-\c@lstnumber=\count290
-\lst@skipnumbers=\count291
-\lst@framebox=\box58
+\c@lstnumber=\count299
+\lst@skipnumbers=\count300
+\lst@framebox=\box60
 )
 (c:/texlive/2023/texmf-dist/tex/latex/listings/listings.cfg
 File: listings.cfg 2023/02/27 1.9 listings configuration
 ))
 Package: listings 2023/02/27 1.9 (Carsten Heinz)
 
+(c:/texlive/2023/texmf-dist/tex/latex/sttools/cuted.sty
+Package: cuted 2021/10/04 v2.0 Mixing onecolumn and twocolumn modes
+\At@ViperColsBreak=\toks34
+\preCutedStrip=\toks35
+\postCutedStrip=\toks36
+\cuted@@tempbox@a=\box61
+\cuted@@tempbox@c=\box62
+\cuted@@tempbox@var=\box63
+\hold@viper=\box64
+\@viper=\box65
+\cuted@@varbox@a=\box66
+\cuted@@varbox@c=\box67
+\cuted@@tempdim@spread=\dimen191
+\cuted@@tempdim@a=\dimen192
+\cuted@@tempdim@b=\dimen193
+\ht@hold@viper=\dimen194
+\ht@viper=\dimen195
+\var@@pagediscards@ht=\dimen196
+\stripsep=\skip56
+\viper@penalty=\count301
+)
+(c:/texlive/2023/texmf-dist/tex/latex/capt-of/capt-of.sty
+Package: capt-of 2009/12/29 v0.2 standard captions outside of floats
+)
 (c:/texlive/2023/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2023/02/27 1.9 listings language file
 )
 (c:/texlive/2023/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2023-10-23 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count292
-\l__pdf_internal_box=\box59
+\l__color_backend_stack_int=\count302
+\l__pdf_internal_box=\box68
 )
-(./conference_101719.aux)
-\openout1 = `conference_101719.aux'.
+(./report.aux)
+\openout1 = `report.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
 
 -- Lines per column: 56 (exact).
 (c:/texlive/2023/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count293
-\scratchdimen=\dimen179
-\scratchbox=\box60
-\nofMPsegments=\count294
-\nofMParguments=\count295
-\everyMPshowfont=\toks27
-\MPscratchCnt=\count296
-\MPscratchDim=\dimen180
-\MPnumerator=\count297
-\makeMPintoPDFobject=\count298
-\everyMPtoPDFconversion=\toks28
+\scratchcounter=\count303
+\scratchdimen=\dimen197
+\scratchbox=\box69
+\nofMPsegments=\count304
+\nofMParguments=\count305
+\everyMPshowfont=\toks37
+\MPscratchCnt=\count306
+\MPscratchDim=\dimen198
+\MPnumerator=\count307
+\makeMPintoPDFobject=\count308
+\everyMPtoPDFconversion=\toks38
 ) (c:/texlive/2023/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
@@ -338,23 +496,29 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-\c@lstlisting=\count299
-LaTeX Font Info:    Calculating math sizes for size <11> on input line 36.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 36.
+\c@lstlisting=\count309
+LaTeX Font Info:    Calculating math sizes for size <11> on input line 70.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 70.
 
 
 (c:/texlive/2023/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 36.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 70.
 
 
 (c:/texlive/2023/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Underfull \hbox (badness 1990) in paragraph at lines 81--82
-[]\OT1/ptm/m/it/10 GProf2Dot \OT1/ptm/m/n/10 and \OT1/ptm/m/it/10 Py-Call-graph
-\OT1/ptm/m/n/10 . Gen-er-ates a di-rected
+LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 8
+8.
+
+(c:/texlive/2023/texmf-dist/tex/latex/psnfss/ot1pcr.fd
+File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
+)
+Underfull \hbox (badness 4505) in paragraph at lines 106--107
+[]\OT1/pcr/m/n/10 GProf2Dot\OT1/ptm/m/n/10 . Gen-er-ates a di-rected arrow-and-
+box
  []
 
 [1{c:/texlive/2023/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{c:/texlive/202
@@ -362,13 +526,70 @@ Underfull \hbox (badness 1990) in paragraph at lines 81--82
 
 
 ]
-<figures/Gantt.png, id=10, 1839.87375pt x 716.17563pt>
+<./svg-inkscape/therm_packages_svg-raw.pdf, id=14, 270.00874pt x 332.9356pt>
+File: ./svg-inkscape/therm_packages_svg-raw.pdf Graphic file (type pdf)
+<use ./svg-inkscape/therm_packages_svg-raw.pdf>
+Package pdftex.def Info: ./svg-inkscape/therm_packages_svg-raw.pdf  used on inp
+ut line 119.
+(pdftex.def)             Requested size: 270.00807pt x 332.93477pt.
+<./svg-inkscape/therm_classes_svg-raw.pdf, id=15, 600.2425pt x 380.76393pt>
+File: ./svg-inkscape/therm_classes_svg-raw.pdf Graphic file (type pdf)
+<use ./svg-inkscape/therm_classes_svg-raw.pdf>
+Package pdftex.def Info: ./svg-inkscape/therm_classes_svg-raw.pdf  used on inpu
+t line 126.
+(pdftex.def)             Requested size: 600.24103pt x 380.76299pt.
+ [2 <./svg-inkscape/therm_packages_svg-raw.pdf> <./svg-inkscape/therm_classes_s
+vg-raw.pdf
+
+pdfTeX warning: pdflatex.exe (file ./svg-inkscape/therm_classes_svg-raw.pdf): P
+DF inclusion: multiple pdfs with page group included in a single page
+>]
+LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <10> not available
+(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 144.
+<./svg-inkscape/therm_callgraph_svg-raw.pdf, id=34, 1307.88625pt x 935.495pt>
+File: ./svg-inkscape/therm_callgraph_svg-raw.pdf Graphic file (type pdf)
+<use ./svg-inkscape/therm_callgraph_svg-raw.pdf>
+Package pdftex.def Info: ./svg-inkscape/therm_callgraph_svg-raw.pdf  used on in
+put line 148.
+(pdftex.def)             Requested size: 1307.88306pt x 935.4927pt.
+CUTED [- LAST -]
+Extra skip:15.07492pt
+Left:169.0499pt/2.16492pt
+Right:156.0pt/0.1399pt
+Split: 167.5949pt
+Output:167.5949pt
+Pageshrink: 0.0pt
+Pagestretch: 0.0pt
+@colht:672.0pt
+CUTED [output]: 167.5949pt
+CUTED [leftcolumn badness]: 7
+CUTED [rightcolumn badness]: 10000
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Underfull \hbox (badness 2435) in paragraph at lines 154--154
+[]\OT1/ptm/m/n/10 It can be seen that the call-graph, as gen-er-ated by
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [3 <./svg-inkscape/therm_callgraph_svg-raw.pdf>]
+<figures/cglimit1.png, id=47, 419.5675pt x 308.15125pt>
+File: figures/cglimit1.png Graphic file (type png)
+<use figures/cglimit1.png>
+Package pdftex.def Info: figures/cglimit1.png  used on input line 166.
+(pdftex.def)             Requested size: 151.20154pt x 111.0472pt.
+ [4 <./figures/cglimit1.png>]
+<figures/Gantt.png, id=54, 1839.87375pt x 716.17563pt>
 File: figures/Gantt.png Graphic file (type png)
 <use figures/Gantt.png>
-Package pdftex.def Info: figures/Gantt.png  used on input line 128.
+Package pdftex.def Info: figures/Gantt.png  used on input line 213.
 (pdftex.def)             Requested size: 478.3559pt x 186.20126pt.
- [2] (./conference_101719.bbl
-Underfull \hbox (badness 2368) in paragraph at lines 25--28
+
+(./report.bbl
+Underfull \hbox (badness 1565) in paragraph at lines 25--28
 []\OT1/ptm/m/n/8 A. Saabith, M. Fa-reez, and T. Vinothraj, ``Python cur-rent tr
 end
  []
@@ -377,7 +598,13 @@ LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 6
 4.
 (c:/texlive/2023/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
-))
+)
+Underfull \hbox (badness 10000) in paragraph at lines 85--86
+[]\OT1/ptm/m/n/8 @gak@zoot.fun, ``py-call-graph,'' https://github.com/gak/pycal
+lgraph,
+ []
+
+)
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -389,29 +616,30 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[3 <./figures/Gantt.png>] (./conference_101719.aux)
+[5] [6 <./figures/Gantt.png>] (./report.aux)
  ***********
 LaTeX2e <2023-11-01>
 L3 programming layer <2023-11-01>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 5687 strings out of 474271
- 86072 string characters out of 5751527
- 1941533 words of memory out of 5000000
- 27839 multiletter control sequences out of 15000+600000
- 597024 words of font info for 112 fonts, out of 8000000 for 9000
+ 8823 strings out of 474271
+ 150326 string characters out of 5751527
+ 2008533 words of memory out of 5000000
+ 30845 multiletter control sequences out of 15000+600000
+ 599749 words of font info for 119 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 57i,11n,65p,924b,336s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 94i,11n,93p,1158b,1275s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb><c:/texl
-ive/2023/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><c:/texlive/2023/texmf-dis
-t/fonts/type1/urw/times/utmbi8a.pfb><c:/texlive/2023/texmf-dist/fonts/type1/urw
-/times/utmr8a.pfb><c:/texlive/2023/texmf-dist/fonts/type1/urw/times/utmri8a.pfb
->
-Output written on conference_101719.pdf (3 pages, 233861 bytes).
+ive/2023/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb><c:/texlive/2023/texmf-d
+ist/fonts/type1/urw/courier/ucrro8a.pfb><c:/texlive/2023/texmf-dist/fonts/type1
+/urw/times/utmb8a.pfb><c:/texlive/2023/texmf-dist/fonts/type1/urw/times/utmbi8a
+.pfb><c:/texlive/2023/texmf-dist/fonts/type1/urw/times/utmr8a.pfb><c:/texlive/2
+023/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on report.pdf (6 pages, 342320 bytes).
 PDF statistics:
- 43 PDF objects out of 1000 (max. 8388607)
- 25 compressed objects within 1 object stream
+ 93 PDF objects out of 1000 (max. 8388607)
+ 57 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 6 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 38 words of extra memory for PDF output out of 10000 (max. 10000000)
 

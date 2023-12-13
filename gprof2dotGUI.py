@@ -15,10 +15,6 @@ from platform import system
 import psutil
 
 
-USE_BUNDLED = False
-# flag to toggle whether to use system or the bundled version.
-# we might want to do this if in the future this becomes necessary
-BUNDLED_GPROF2DOT = "gprof2dot/gprof2dot.py"
 BUNDLED_TEE_DIR = "tee-win32/tee-x64.exe"
 
 
@@ -34,12 +30,13 @@ class ProfileToDot(tk.Frame):
 
         self.addProfilerWidgets()
         self.add2DotWidgets()
+        self.addFlameprofWidgets()
 
         self.addConsoleWidgets()
         self.addControlWidgets()
 
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(2, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.rowconfigure(0, weight=1)
 
         # make queues for keeping stdout and stderr whilst it is transferred between threads
         self.outQueue = queue.Queue()
@@ -58,9 +55,7 @@ class ProfileToDot(tk.Frame):
 
     def addProfilerWidgets(self):
         profileOptionFrame = ttk.LabelFrame(self, text="Profiler Options")
-        profileOptionFrame.grid(
-            row=0, column=0, sticky="nsew", padx=10, pady=10
-        )
+        profileOptionFrame.grid(row=0, column=0, sticky="nsew", padx=10, pady=5)
         profileOptionFrame.columnconfigure(2, weight=1)
 
         # group of widgets responsible for selecting the target file.
@@ -97,7 +92,6 @@ class ProfileToDot(tk.Frame):
         ttk.Entry(profileOptionFrame, textvariable=self.p_arg_o).grid(
             row=2, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
         )
-
         ttk.Button(
             profileOptionFrame,
             text="Select File",
@@ -166,9 +160,7 @@ class ProfileToDot(tk.Frame):
 
     def add2DotWidgets(self):
         prof2dotOptionFrame = ttk.LabelFrame(self, text="prof2dot Options")
-        prof2dotOptionFrame.grid(
-            row=1, column=0, stick="nsew", padx=10, pady=10
-        )
+        prof2dotOptionFrame.grid(row=1, column=0, stick="nsew", padx=10, pady=5)
 
         self.d_arg_o = tk.StringVar(value=".")
         ttk.Label(prof2dotOptionFrame, text="-o FILE, --output=").grid(
@@ -242,7 +234,7 @@ class ProfileToDot(tk.Frame):
 
         miscFrame = tk.Frame(prof2dotOptionFrame)
         miscFrame.grid(
-            row=6, column=0, columnspan=3, sticky="nsew", padx=10, pady=10
+            row=6, column=0, columnspan=3, sticky="nsew", padx=10, pady=5
         )
 
         for i in range(3):
@@ -343,9 +335,66 @@ class ProfileToDot(tk.Frame):
             variable=self.d_autofill_loc,
         ).grid(row=0, column=1, stick="nsew", padx=2, pady=2)
 
+    def addFlameprofWidgets(self):
+        flameFrame = ttk.LabelFrame(self, text="flameprof Options")
+        flameFrame.grid(row=2, column=0, stick="nsew", padx=10, pady=5)
+        flameFrame.columnconfigure(1, weight=1)
+
+        self.f_arg__width = tk.StringVar(value="1200")
+        ttk.Label(flameFrame, text="--width").grid(
+            row=0, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(flameFrame, textvariable=self.f_arg__width).grid(
+            row=0, column=1, sticky="nsew", padx=2, pady=2
+        )
+        self.f_arg__row_height = tk.StringVar(value="24")
+        ttk.Label(flameFrame, text="--row-height").grid(
+            row=1, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(flameFrame, textvariable=self.f_arg__row_height).grid(
+            row=1, column=1, sticky="nsew", padx=2, pady=2
+        )
+
+        self.f_arg__font_size = tk.StringVar(value="12")
+        ttk.Label(flameFrame, text="--font-size").grid(
+            row=2, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(flameFrame, textvariable=self.f_arg__font_size).grid(
+            row=2, column=1, sticky="nsew", padx=2, pady=2
+        )
+
+        self.f_arg__threshold = tk.StringVar(value="0.1")
+        ttk.Label(flameFrame, text="--threshold (%)").grid(
+            row=3, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(flameFrame, textvariable=self.f_arg__threshold).grid(
+            row=3, column=1, sticky="nsew", padx=2, pady=2
+        )
+
+        self.f_arg__cpu = tk.IntVar()
+        ttk.Checkbutton(
+            flameFrame, text="--cpu", variable=self.f_arg__cpu
+        ).grid(row=4, column=0, columnspan=2, sticky="nsew", padx=2, pady=2)
+
+        self.f_arg_o = tk.StringVar(value=".")
+        ttk.Label(flameFrame, text="-o, --output").grid(
+            row=5, column=0, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Entry(flameFrame, textvariable=self.f_arg_o).grid(
+            row=5, column=1, columnspan=2, sticky="nsew", padx=2, pady=2
+        )
+        ttk.Button(
+            flameFrame,
+            text="Select File",
+            underline=7,
+            command=lambda: self.f_arg_o.set(self.selectFile()),
+        ).grid(row=5, column=3, sticky="nsew", padx=2, pady=2)
+
     def addConsoleWidgets(self):
         consoleFrame = ttk.LabelFrame(self, text="Console")
-        consoleFrame.grid(row=2, column=0, sticky="nsew", padx=10, pady=10)
+        consoleFrame.grid(
+            row=0, column=1, rowspan=5, sticky="nsew", padx=10, pady=5
+        )
 
         # allow 3,1 to unconditionally take up more space as the window is resized
 
@@ -391,7 +440,7 @@ class ProfileToDot(tk.Frame):
 
     def addControlWidgets(self):
         operationFrame = ttk.LabelFrame(self, text="Operations")
-        operationFrame.grid(row=3, column=0, stick="nsew")
+        operationFrame.grid(row=4, column=0, stick="nsew")
 
         for i in range(2):
             operationFrame.columnconfigure(index=i, weight=1)
@@ -545,6 +594,7 @@ class ProfileToDot(tk.Frame):
         self.p_arg_o.set(".")
         self.d_arg_o.set(".")
         self.d_arg_p.set(".")
+        self.f_arg_o.set(".")
 
     def write(self, string, tag=None):
         self.ttyText.insert(tk.END, string, tag)
@@ -621,6 +671,11 @@ class ProfileToDot(tk.Frame):
         if self.d_arg_o.get() == "." or self.d_arg_o.get() == "":
             self.d_arg_o.set(
                 os.path.normpath(os.path.join(profilePath, file + ".png"))
+            )  # output dot file\
+
+        if self.f_arg_o.get() == "." or self.f_arg_o.get() == "":
+            self.f_arg_o.set(
+                os.path.normpath(os.path.join(profilePath, file + "_flame.svg"))
             )  # output dot file
 
         if self.d_arg_p.get() == ".":
@@ -700,16 +755,7 @@ class ProfileToDot(tk.Frame):
         prof2dotCmd = " ".join(
             arg
             for arg in (
-                (
-                    os.path.normpath(
-                        os.path.join(
-                            os.path.dirname(os.path.abspath(__file__)),
-                            BUNDLED_GPROF2DOT,
-                        )
-                    )
-                    if USE_BUNDLED
-                    else "python -m gprof2dot"
-                ),
+                "python -m gprof2dot",
                 "-f pstats",
                 (
                     "-n " + self.d_arg_n.get()
@@ -773,9 +819,40 @@ class ProfileToDot(tk.Frame):
             )
             if arg is not None
         )
+
+        flameCmd = " ".join(
+            arg
+            for arg in (
+                "python",
+                "-m",
+                "flameprof",
+                self.p_arg_o.get(),
+                "-o " + self.f_arg_o.get(),
+                "--width " + self.f_arg__width.get()
+                if self.f_arg__width.get() != ""
+                else None,
+                "--row-height " + self.f_arg__row_height.get()
+                if self.f_arg__row_height.get() != ""
+                else None,
+                "--font-size " + self.f_arg__font_size.get()
+                if self.f_arg__font_size.get() != ""
+                else None,
+                "--threshold " + self.f_arg__threshold.get()
+                if self.f_arg__threshold.get() != ""
+                else None,
+                "--cpu" if self.f_arg__cpu.get() else None,
+                "\n",
+            )
+            if arg is not None
+        )
+
         self.p.stdin.write(cProfileCmd.encode())
         self.p.stdin.flush()
+
         self.p.stdin.write(prof2dotCmd.encode())
+        self.p.stdin.flush()
+
+        self.p.stdin.write(flameCmd.encode())
         self.p.stdin.flush()
 
 

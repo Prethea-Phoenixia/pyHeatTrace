@@ -1,6 +1,6 @@
 This is BibTeX, Version 0.99d (TeX Live 2023)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
-The top-level auxiliary file: conference_101719.aux
+The top-level auxiliary file: report.aux
 The style file: IEEEtran.bst
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
@@ -14,45 +14,45 @@ Database file #1: ieeebib.bib
 Warning--empty journal in fernandez2023empirical
 
 Done.
-You've used 9 entries,
+You've used 13 entries,
             4087 wiz_defined-function locations,
-            870 strings with 9114 characters,
-and the built_in function-call counts, 6003 in all, are:
-= -- 453
-> -- 136
+            885 strings with 9573 characters,
+and the built_in function-call counts, 7542 in all, are:
+= -- 568
+> -- 169
 < -- 37
-+ -- 72
-- -- 25
-* -- 288
-:= -- 893
-add.period$ -- 21
-call.type$ -- 9
-change.case$ -- 9
++ -- 88
+- -- 33
+* -- 337
+:= -- 1158
+add.period$ -- 29
+call.type$ -- 13
+change.case$ -- 13
 chr.to.int$ -- 84
-cite$ -- 10
-duplicate$ -- 449
-empty$ -- 541
-format.name$ -- 31
-if$ -- 1398
+cite$ -- 14
+duplicate$ -- 581
+empty$ -- 696
+format.name$ -- 40
+if$ -- 1745
 int.to.chr$ -- 0
-int.to.str$ -- 9
-missing$ -- 84
-newline$ -- 54
-num.names$ -- 7
-pop$ -- 224
+int.to.str$ -- 13
+missing$ -- 116
+newline$ -- 66
+num.names$ -- 11
+pop$ -- 315
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 461
+skip$ -- 585
 stack$ -- 0
-substring$ -- 217
-swap$ -- 326
+substring$ -- 221
+swap$ -- 401
 text.length$ -- 9
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 9
+type$ -- 13
 warning$ -- 1
-while$ -- 24
-width$ -- 10
-write$ -- 104
+while$ -- 28
+width$ -- 15
+write$ -- 135
 (There was 1 warning)

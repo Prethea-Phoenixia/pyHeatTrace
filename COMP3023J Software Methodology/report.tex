@@ -6,8 +6,42 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{float}
+\usepackage[inkscapelatex=false]{svg}
+\graphicspath{{figures/}}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 \usepackage{listings} % <翟> 加了一个库用来展示代码
+\usepackage{cuted}
+\usepackage{capt-of} 
 \lstset{language=Python}
+%\newcommand{\listingsttfamily}{\fontfamily{IBMPlexMono-TLF}\small}
+%\newcommand{\listingsttfamily}{\fontfamily{NotoSansMono-TLF}\small}
+\lstdefinestyle{prettycode}{
+  %basicstyle=\listingsttfamily,
+  aboveskip={0.9\baselineskip},               
+  backgroundcolor=\color{backcolour},   
+  commentstyle=\color{codegreen},
+  keywordstyle=\color{magenta},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,         
+  breaklines=true,                 
+  captionpos=b,                    
+  keepspaces=true,                 
+  numbers=left,                    
+  numbersep=5pt,                  
+  showspaces=false,                
+  showstringspaces=false,
+  showtabs=false,                  
+  tabsize=4,
+  xleftmargin=0.5cm, xrightmargin=0.5cm
+}
+\lstset{style=prettycode}
+
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
@@ -51,52 +85,105 @@ Python is widely recognized as one of the most popular programming languages in 
 However, as Python projects expand in size and complexity, they encounter fresh challenges associated with both development and maintenance. These challenges encompass intricacies in code organization, the emergence of ``hot code" leading to performance bottlenecks, and the escalating intricacies of ongoing maintenance\cite{peng2021empirical}. Consequently, there arises a compelling need for code analysis and optimization for large Python projects\cite{ray2014large}.
 
 % 先前的研究背景？写了一下关于trace代码追踪和分析的。然后还有可视化的。这也可以详细写分成两段。
-Previous studies have emphasised the efficacy of employing code tracing and code coverage techniques within Python projects in tackling these problems. Code tracing refers to the action of following the flow of program execution. It shares some similarities with deterministic profiling and debugging, in that in the context of Python, this is usually accomplished via placing a hook function into the Python interpreter via the provided \textit{sys.settrace()} method, that is then called to record the exact detail of program execution. Among these, CPython's Lib.trace.py module provides robust capabilities in tracing the execution of native Python code\cite{aakerblom2014tracing}. This module adeptly traces function calls and furnishes comprehensive code coverage reports, thus facilitating the identification of inadequately tested code and performance bottlenecks. \par
+Previous studies have emphasised the efficacy of employing code tracing and code coverage techniques within Python projects in tackling these problems. Code tracing refers to the action of following the flow of program execution. It shares some similarities with deterministic profiling and debugging, in that in the context of Python, this is usually accomplished via placing a hook function into the Python interpreter via the provided \texttt{sys.settrace()} method, that is then called to record the exact detail of program execution. Among these, CPython's Lib.trace.py module provides robust capabilities in tracing the execution of native Python code\cite{aakerblom2014tracing}. This module adeptly traces function calls and furnishes comprehensive code coverage reports, thus facilitating the identification of inadequately tested code and performance bottlenecks. \par
  
 % 这段大概扩充一下，因为我们组相对来讲是偏向于visualization的
 Simultaneously, a growing trend in recent years has witnessed the adoption of visualization tools to enhance code analysis, presenting findings in an intuitively accessible format\cite{cao2021research,fernandez2023empirical}. This trend serves to further enhance code quality and bolster the maintainability of large Python projects.\par
 
-Of note is that due to the converging interest in developing better techniques for the visualization of profiling results, in recent years popular visualization packages have instead opted for extending either the \textit{pdb}, the Python debugger module, or various deterministic profilers, traditionally either the \textit{profile} or the \textit{cProfile} packages. The merits of some of these options will be explored later in this report.\par
+Of note is that due to the converging interest in developing better techniques for the visualization of profiling results, in recent years popular visualization packages have instead opted for extending either the \texttt{pdb}, the Python debugger module, or various deterministic profilers, traditionally either the \texttt{profile} or the \texttt{cProfile} packages. The merits of some of these options will be explored later in this report.\par
 
 
 % 最后是我们的研究目的，这个后期分析的目标定了之后要重写一下
 Consequently, this research aims to explore and compare various options for tracing Python code visualization, and demonstrate the use of these techniques for a better understanding of complex Python projects.\par
 
 \section{Previous Art} 
-\iffalse
-% <翟> Literature Review -> Previous Art
-% <翟> 这个是前几天一直在忙的那个python自带的trace，讲一下它的大概情况
-Lib/trace.py is the tool bundled with CPython, the reference implementation for Python language\cite{cpythonlibtracepy}. Written in the early 2000s, it has been part of the official library from as early as Python 2.2. It provides both program execution tracing and code coverage analysis functionality, and even a limited profiling ability. Implementation-wise, it attaches a tracing funciton (via \textit{sys.settrace()}), written in Python, that is attached to the evaluation mechanism in the underlying Python interpreter, and is called during the normal execution of CPython\cite{trace}. As for usability, it supports both programmatic invocation and via the command line.\par
-
-Coverage.py is a more recent third-party code coverage package that started in 2009 and has apparently gained some official endorsement\cite{batchelder_2023_coveragepy}. It employs a similar strategy, but differs in its implementation, specifically using a trace function in C. This avoids the overhead involved with converting C data types to Python ones and calling a Python function from C code for each evaluation, in exchange for some overhead at the end of tracing \cite{a2011_how}. Through this, the impact of tracing on program execution can almost be eliminated. Given the package's focus on coverage analysis, it provides less exportable information with regard to program execution flow besides coverage information. From a users perspective, although execution is limited to command line invocation, it supports more modern formats for reporting, including in HTML and such. \par
-\fi
+Lib/trace.py is the tool bundled with CPython, the reference implementation for Python language\cite{cpythonlibtracepy}. Written in the early 2000s, it has been part of the official library from as early as Python 2.2. It provides both program execution tracing and code coverage analysis functionality, and even a limited profiling ability. Implementation-wise, it attaches a tracing funciton (via \texttt{sys.settrace()}), written in Python, that is attached to the evaluation mechanism in the underlying Python interpreter, and is called during the normal execution of CPython\cite{trace}. Although the module itself does not provide for much in terms of visualization, in recent years a few projects that employs similar techniques for the generation of visualization has emerged. We will examine two such projects, the more established \texttt{pycallgraph}, and a more recent work, \texttt{vizTracer}.
 
 
-Lib/trace.py is the tool bundled with CPython, the reference implementation for Python language\cite{cpythonlibtracepy}. Written in the early 2000s, it has been part of the official library from as early as Python 2.2. It provides both program execution tracing and code coverage analysis functionality, and even a limited profiling ability. Implementation-wise, it attaches a tracing funciton (via \textit{sys.settrace()}), written in Python, that is attached to the evaluation mechanism in the underlying Python interpreter, and is called during the normal execution of CPython\cite{trace}. Although the module itself does not provide for much in terms of visualization, in recent years a few projects have emerged that has taken care of that. This work will examine one such project, \textit{vizTracer}.
-
-
-Various Python profilers, in particular profiling tools bundled with CPython as part of the standard library, the \textit{profile} and the C implementation \textit{cProfile} are also of some interest. As deterministic profilers, they records and expose the Python call stack for each evaluation, allowing program execution tracing to be inferred. Due to the wealth of information recorded, over the years, many projects that visualizes program execution has built upon its output. Notable ones includes: \par
+Various Python profilers, in particular profiling tools bundled with CPython as part of the standard library, the \texttt{profile} and the C implementation \texttt{cProfile} are also of some interest. As deterministic profilers, they records and expose the Python call stack for each evaluation, allowing program execution tracing to be inferred. Due to the wealth of information recorded, over the years, many projects that visualizes program execution has built upon its output. Notable ones includes: \par
 \begin{enumerate}
-    \item \textit{RunSnakeRun}. Generates a variation of tree map using performance statistics. Call relation implied by geometrical relations.
-    \item \textit{GProf2Dot} and \textit{PyCallgraph}. Generates a directed arrow-and-box graph with performance statistics, broken down based on call relations.
+    \item \texttt{RunSnakeRun}. Generates a tree map.
+    \item \texttt{GProf2Dot}. Generates a directed arrow-and-box graph.
+    \item \texttt{flameprof}. Generates a flame graph.
 \end{enumerate}
 Of note is that not all profilers are suitable for our purposes. In particular, non-deterministic profilers works by sampling, at set intervals, the memory layout of the Python interpreter, thus they are suitable for low overhead programm profiling, but unsuitable when capturing function calls for analysis are required, since there is no guarantee of the completeness of the resulting capture. Solutions based on these will be ignored for the purpose of this study.\par
 
-
-Finally it bears mentioning that an emerging technique employed in the visualizaiton of tracing information is that of %引用一下这个https://arxiv.org/pdf/2103.00587.pdf
-static code analysis. In particular, sophisticated models have been proposed in academica to analyze Python code that has demonstrated limited ability to infer call relation without running the code. However, due to the dynamically typed, interpreted nature of Python, this approach has met some challenges when met with complex code structure, dynamic or conditional imports, and deep class hierarchies. \par
-
+Finally it bears mentioning that an emerging technique employed in the visualizaiton of tracing information is that of static code analysis. In particular, sophisticated models have been proposed in academica to analyze Python code that has demonstrated limited ability to infer call relation without running the code\cite{salis2021pycg}. However, due to the dynamically typed, interpreted nature of Python, this approach has met some challenges when met with complex code structure, dynamic or conditional imports, and deep class hierarchies. \par
 
 \section{Methodology}
-Describe the way that you do your own research and how you are going to explore the thesis statement that you made. 
+For the purpose of this research, we first constructed a Python project consisting of multiple modules that emulates various code structure and exeucte common operations that is encountered in Python projects. From there, multiple types of graphs were generated, and the merits of the resulting graphs are compared, with a particular focus a few select criterion aspects that pertains to the ability of a programmer to use the generated result as a source for the comprehension of the underlying code structure.\par
 
-\section{Experiments and results}
+\texttt{thermal} is a collection of Python scripts that is bundled as part of an open source interior ballistic solver, hosted on Github\cite{pibs}. Minor manipulation was required to convert it to the format of a Python package. At roughly 2400 lines long (with comments) across 7 files, it is inteded to represent a medium sized, scientific computing oriented Python project.\par
+\begin{figure}[htpb]
+  \centering
+  \includesvg[width=0.6\linewidth]{therm_packages}  
+  \caption{Package Organization of the \texttt{thermal} scripts. Generated using \texttt{pyreverse} tool.}
+  \label{thermal: package diagram}
+\end{figure}
+A short explanation of the package may help with the appreciation of the visualization developed later in this report.\par
+\begin{figure}[htpb]
+  \centering
+  \includesvg[width=0.95\linewidth]{therm_classes}  
+  \caption{Class Diagram and of the \texttt{thermal} scripts. Generated using \texttt{pyreverse} tool.}
+  \label{thermal: class diagram}
+\end{figure}
+
+In \texttt{nasa7.py}, \texttt{Species} class is defined with objects of this class storing information which allows the calculation of thermalchemical properties, via substitution back into curve-fitted polynomial. Objects of this class are created by reading from a thermalchemical punch-card record, at \texttt{data/PEPCODED.DAF}. Within the same file, \texttt{Reaction} object represents a chemical reaction involving a certain number of \texttt{Specie}s as reactants and products, and facilitates the calculation of enthalpy, entropy and gibbs free energy change of reaction.\par
+
+Within \texttt{therm.py}, The \texttt{Ingredient} allows the representation of energetic materials. Objects of this class are created by reading a thermalchemical database record in a specific format, at \texttt{data/nasa7.dat}, or via user definition. \texttt{Mixture} class objects represents a combination of \texttt{Ingredient} at varying ratios, and implements calculation of derived thermalchemical properties, in turn relying on calling function in \texttt{corner.py} which uses the information supplied via \texttt{Ingredient} instances to construct \texttt{Reaction}s, calling to it for the calculation of corresponding chemical equilibrium. Several other files contains support functions and data values that are used in support of the afore-described core functionalities.\par
+
+As per Python programming conventions, most scripts or modules contains are likely to contain its own entry point.
+\begin{lstlisting}[caption=Entry Point for Python Scripts]
+# code executed if imported to other scripts
+if __name__ == "__main__":
+	# code executed if this script is run independently
+\end{lstlisting}
+These serve as convenient locations for script or module-specific tests or examples, often written alongside the module itself. Using these as entry points can be useful when attempting to visualize an unknown project. Although, it is more often the case that these have been pruned out for more established projects, in which case it is necessary to either set up the testing environment as per the project guidelines (often using libraries like \texttt{pytest}), or find minimum working examples provided. For the convenience of this report we have assumed that this is the case, and an working example that may serve as the entry point for visualization is provided as \texttt{main.py}, which will serve just this purpose for further analysis.\par
+
+\section{Experiments and Results}
+\subsection{\texttt{pycallgraph}}
+\texttt{pycallgraph}\cite{pycallgraph} is a relatively established module for the generation of callgraph for Python projects, with the first trackable commit on Github dating back to 2009. The mechanism by which this works is similar to \texttt{Lib.trace} in that a custom tracing function is defined (in Python), and attached to the interpreter via \texttt{system.settrace()}. This function is then invoked on every line evaluation, exception raised and function returns. Finally, the data is processed by \texttt{pycallgraph}, into the final grpahical information. The graphical backend \texttt{graphiviz} is then used to convert the generated \texttt{.dot} file into presentable image formats such as \texttt{.png} or \texttt{.svg}. Although by all metrics a popular package, this package has been archived due to lack of maintenance (and is currently unusable . This research instead employs a maintained, backward compatible fork known as \texttt{pycallgraph2}\cite{pycallgraph2}, which is publically available from PyPI, the Python package index. Running on \texttt{main.py} generates a callgraph as below:\par
+\begin{strip}
+  \centering
+  \includesvg[width=\linewidth]{therm_callgraph}  
+  \captionof{figure}{Callgraph Generated by \texttt{pycallgraph2} from \texttt{main.py}}
+  \label{thermal: callgraph}
+\end{strip}
+It is seen that in the callgraph, function calls are represented with boxes, and functional invocation is represented via arrow, pointing from the caller to the callee, with a numeral indicating the number of times this particular relation has occured. Of note is that we have chose to enable the option for grouping calls based of file here to illustrate this feature. The cells can be colored based on either total-time, the cumulative time spent within this function, or self-time, which is the total time sans the time spent in subsequent calls to other functions. The hue is approximately lograithmic colored. Setting it to former, will illustrate the main branch of execution. Setting it to the latter will help to illuminate performance bottlenecks. The above graph has been colored according to total-time.\par
+
+It can be seen that the callgraph, as generated by \texttt{pycallgraph}, aptly reproduced the call activity and their hierarchy for the underlying code. Starting from the first \lstinline!__init__! node, program execution transfers to \lstinline!main()!, from which point it can be inferred that five \lstinline!Ingredient! and \lstinline!Mixture! objects were initiated via calling to their \lstinline!__init__! constructor methods directly. Additionally, more \lstinline!Ingredient! objects are created through \lstinline!therm.readFile()! function call, which after being called from \lstinline!main()! called the constructor \lstinline!Ingredient.__init__()! 1086 times. Finally, the \lstinline!main()! function also called \lstinline!therm.getLine()! and \lstinline!Mixture.prettyprint()! method five times.\par
+
+Following the main branch of execution, calls to \lstinline!Mixture.__init__()! triggers evaluation of \lstinline!corner.balance()!, and to \lstinline!umf.secant()!, which in turn calls a function \lstinline!Mixture.f()! and from there also the \lstinline!corner.balance()! function. The \lstinline!import! statement executes the \lstinline!nasa7.read! function, defining 1136 new \lstinline!nasa7.Species!, and 9 \lstinline!nasa7.Reactions!. \par
+
+This example illustrates the strength and weaknesses of the functional call-graph visualization. In terms of strength, it is seen that the program flow is easily deduced, and the programmer's attention is immediately drawn to the primary branch. In addition, due to the organizational grouping according to files, the interdependency of the modules are clearly shown. This is particularly helpful when the project size is large enough that a complete reading through all the modules might otherwise have taken a long time.\par
+
+This example also highlights one particular weakness of this visualization, in that this approach does not allow the visualization of discrete objects, instead the existence and manipulation of objects must be completely inferred from the graph. In particular, in code it can be seen that, while in code, the initialization and manipulation of objects are clearly linked through identifier:
+\begin{lstlisting}
+ATKPRDS22 = Mixture(
+	# .... definition elided for brevity
+) # object initialization
+ATKPRDS22.prettyPrint() # object manipulation
+\end{lstlisting}
+In the call graph, these operations have been illustrated separately, like the following:
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.6\linewidth]{cglimit1}  
+  \captionof{figure}{Closeup of Figure \ref{thermal: callgraph}}
+\end{figure}
+Given that the use of objects for the organization of data and operations being one of the primary benefit for object oriented programming, the visualization fails in this regard to associate the two together, impairing the programmer's ability to gain insight into the behavior of code, especially if objects-logic drives the program execution flow, and may differ depending on data, such as this example. Additionally, it appears that a particular failing of \lstinline!pycallgraph! is the inability to distinguish between class or static methods, and global functions. For example, in reality, \lstinline!therm.getLine()! is defined as:
+\begin{lstlisting}
+class Ingredient:
+	# .... other functions elided for brevity
+	@classmethod
+	def getLine(cls, lineNo):
+		#.... code elided for brevity
+\end{lstlisting}
+This is inconsistent with what the programmer usually expect, for example \lstinline!therm.Ingredient.getLine()!.\par
 
 
-Analyze experimental results. 
+\texttt{gprof2dot}. 
 \section{Discussion}
-Explore the results and talk about the implications that the results have upon the entire body of research which existed. 
-
+Originally, the research was planned to be of a larger scope, where code from common libraries would be tested. 
 \section{Conclusion}
 General statement and ending thoughts about the topic. 
 
@@ -366,15 +453,6 @@ The entire team is in unanimous agreement that each member's commitment and cont
 
 \bibliographystyle{IEEEtran}
 \bibliography{ieeebib.bib}
-% \begin{thebibliography}{00}
-% \bibitem{b1} G. Eason, B. Noble, and I. N. Sneddon, ``On certain integrals of Lipschitz-Hankel type involving products of Bessel functions,'' Phil. Trans. Roy. Soc. London, vol. A247, pp. 529--551, April 1955.
-% \bibitem{b2} J. Clerk Maxwell, A Treatise on Electricity and Magnetism, 3rd ed., vol. 2. Oxford: Clarendon, 1892, pp.68--73.
-% \bibitem{b3} I. S. Jacobs and C. P. Bean, ``Fine particles, thin films and exchange anisotropy,'' in Magnetism, vol. III, G. T. Rado and H. Suhl, Eds. New York: Academic, 1963, pp. 271--350.
-% \bibitem{b4} K. Elissa, ``Title of paper if known,'' unpublished.
-% \bibitem{b5} R. Nicole, ``Title of paper with only first word capitalized,'' J. Name Stand. Abbrev., in press.
-% \bibitem{b6} Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, ``Electron spectroscopy studies on magneto-optical media and plastic substrate interface,'' IEEE Transl. J. Magn. Japan, vol. 2, pp. 740--741, August 1987 [Digests 9th Annual Conf. Magnetics Japan, p. 301, 1982].
-% \bibitem{b7} M. Young, The Technical Writer's Handbook. Mill Valley, CA: University Science, 1989.
-% \end{thebibliography}
-\vspace{12pt}
+
 
 \end{document}
