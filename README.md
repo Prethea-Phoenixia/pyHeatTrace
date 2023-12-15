@@ -1,10 +1,6 @@
 # pyHeatTrace
 Easily analyze Python program function execution with heatmaps generated via tracing.
 
-## Overleaf
-
-- Click [here](https://cn.overleaf.com/4673289595rmjvpdrtyshp#8d6619) you can edit the paper.
-
 ### Gantt Chart
 
 ```mermaid
